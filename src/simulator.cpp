@@ -16,14 +16,18 @@
 #include "Environment.h"
 #include <SDL.h>
 #include <SDL_joystick.h>
-//#include <TrackedVehicleEnvironment.h>
-//#include <TrackedVehicle.h>
-#include <iostream>
+#include <TrackedVehicleEnvironment.h>
+#include <TrackedVehicle.h>
 #include <SimpleTrackedVehicleEnvironment.h>
 #include <SimpleTrackedVehicle.h>
 
+#if 1
+#define VEHICLE_TYPE TrackedVehicle
+#define ENVIRONMENT_TYPE TrackedVehicleEnvironment
+#else
 #define VEHICLE_TYPE SimpleTrackedVehicle
 #define ENVIRONMENT_TYPE SimpleTrackedVehicleEnvironment
+#endif
 
 Environment *environment;
 SDL_Joystick *joystick;

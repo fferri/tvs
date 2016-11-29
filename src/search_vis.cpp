@@ -13,9 +13,21 @@
 #include <ode/ode.h>
 #include <drawstuff/drawstuff.h>
 #include "Environment.h"
+#include <TrackedVehicleEnvironment.h>
+#include <TrackedVehicle.h>
+#include <SimpleTrackedVehicleEnvironment.h>
+#include <SimpleTrackedVehicle.h>
 #include "OMPLTVSSimpleSetup.h"
 #include <boost/filesystem.hpp>
 #include <fstream>
+
+#if 1
+#define VEHICLE_TYPE TrackedVehicle
+#define ENVIRONMENT_TYPE TrackedVehicleEnvironment
+#else
+#define VEHICLE_TYPE SimpleTrackedVehicle
+#define ENVIRONMENT_TYPE SimpleTrackedVehicleEnvironment
+#endif
 
 Environment *environment;
 size_t old_len = 0;
@@ -97,7 +109,7 @@ int main(int argc, char **argv) {
     dInitODE2(0);
     dAllocateODEDataForThread(dAllocateMaskAll);
 
-    environment = new Environment();
+    environment = new SimpleTrackedVehicleEnvironment();
     environment->create();
 
     // set initial robot pose:

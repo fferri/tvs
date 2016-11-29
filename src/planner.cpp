@@ -15,6 +15,10 @@
 #include <ode/ode.h>
 #include <drawstuff/drawstuff.h>
 #include "Environment.h"
+#include <TrackedVehicleEnvironment.h>
+#include <TrackedVehicle.h>
+#include <SimpleTrackedVehicleEnvironment.h>
+#include <SimpleTrackedVehicle.h>
 #include "OMPLTVSSimpleSetup.h"
 #include <ompl/control/planners/kpiece/KPIECE1.h>
 #include <ompl/control/planners/rrt/RRT.h>
@@ -22,6 +26,14 @@
 #include <ompl/control/planners/syclop/SyclopRRT.h>
 #include <ompl/control/planners/syclop/SyclopEST.h>
 #include <ompl/control/planners/pdst/PDST.h>
+
+#if 1
+#define VEHICLE_TYPE TrackedVehicle
+#define ENVIRONMENT_TYPE TrackedVehicleEnvironment
+#else
+#define VEHICLE_TYPE SimpleTrackedVehicle
+#define ENVIRONMENT_TYPE SimpleTrackedVehicleEnvironment
+#endif
 
 Environment *environment;
 
@@ -71,7 +83,7 @@ int main(int argc, char **argv) {
     dInitODE2(0);
     dAllocateODEDataForThread(dAllocateMaskAll);
 
-    environment = new Environment();
+    environment = new ENVIRONMENT_TYPE();
     environment->create();
 
     // set initial robot pose:
