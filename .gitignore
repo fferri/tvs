@@ -1,11 +1,15 @@
 main
+simulator
 planner
-search_vis
+search-vis
 tree-*.csv
 solution-*.csv
-simulator
 *.o
 *.d
 **/UserInterfaceState.xcuserstate
 **/xcuserdata
 .*.swp
+Makefile
+CMakeCache.txt
+CMakeFiles/*
+cmake_install.cmake
