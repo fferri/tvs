@@ -50,6 +50,8 @@ include_directories(
 
 set(BASE_SOURCES
         src/Environment.cpp
+        src/TriMesh.cpp
+        src/STLFile.cpp
         src/ODEUtils.cpp
         src/utils.cpp
 

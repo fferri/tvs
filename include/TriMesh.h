@@ -10,25 +10,18 @@
 #define TRIMESH_H_INCLUDED
 
 #include <ode/ode.h>
+#include <inttypes.h>
 
 class Environment;
-
-struct Vertex {
-    dVector3 v;
-};
-
-struct Triangle {
-    dTriIndex i[3];
-};
 
 class TriMesh {
 public:
     dGeomID geom;
-    dTriMeshDataID data;
+    dTriMeshDataID triMeshDataID;
     
-    Vertex *vertices;
+    dReal *vertices;
     int vertex_count;
-    Triangle *triangles;
+    dTriIndex *triangles;
     int triangle_count;
     
     TriMesh();
