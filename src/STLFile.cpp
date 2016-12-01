@@ -9,118 +9,119 @@
 #include "STLFile.h"
 
 #include <fstream>
-#include <string>
 #include <sstream>
 #include <iostream>
+#include <exception>
 
-bool STLFacet::readAscii(std::ifstream &f) {
+void STLFacet::readAscii(std::vector<std::string> &lines, size_t &pos) {
+    size_t p = pos;
     {
-        std::string line, facet, normal;
-        if(!std::getline(f, line)) return false;
-        std::istringstream iss(line);
-        if(!(iss >> facet >> normal >> ni >> nj >> nk)) return false;
-        if(facet != "facet" || normal != "normal") return false;
+        std::string facet, normal;
+        std::istringstream iss(lines[p++]);
+        if(!(iss >> facet >> normal >> ni >> nj >> nk) || facet != "facet" || normal != "normal")
+            throw std::runtime_error(std::string("cannot read facet: bad format: ") + iss.str());
     }
     {
-        std::string line, outer, loop;
-        if(!std::getline(f, line)) return false;
-        std::istringstream iss(line);
-        if(!(iss >> outer >> loop)) return false;
-        if(outer != "outer" || loop != "loop") return false;
+        std::string outer, loop;
+        std::istringstream iss(lines[p++]);
+        if(!(iss >> outer >> loop) || outer != "outer" || loop != "loop")
+            throw std::runtime_error(std::string("cannot read facet: bad format: ") + iss.str());
     }
     {
-        std::string line, vertex;
-        if(!std::getline(f, line)) return false;
-        std::istringstream iss(line);
-        if(!(iss >> vertex >> ax >> ay >> az)) return false;
-        if(vertex != "vertex") return false;
+        std::string vertex;
+        std::istringstream iss(lines[p++]);
+        if(!(iss >> vertex >> ax >> ay >> az) || vertex != "vertex")
+            throw std::runtime_error(std::string("cannot read facet: bad format: ") + iss.str());
     }
     {
-        std::string line, vertex;
-        if(!std::getline(f, line)) return false;
-        std::istringstream iss(line);
-        if(!(iss >> vertex >> bx >> by >> bz)) return false;
-        if(vertex != "vertex") return false;
+        std::string vertex;
+        std::istringstream iss(lines[p++]);
+        if(!(iss >> vertex >> bx >> by >> bz) || vertex != "vertex")
+            throw std::runtime_error(std::string("cannot read facet: bad format: ") + iss.str());
     }
     {
-        std::string line, vertex;
-        if(!std::getline(f, line)) return false;
-        std::istringstream iss(line);
-        if(!(iss >> vertex >> cx >> cy >> cz)) return false;
-        if(vertex != "vertex") return false;
+        std::string vertex;
+        std::istringstream iss(lines[p++]);
+        if(!(iss >> vertex >> cx >> cy >> cz) || vertex != "vertex")
+            throw std::runtime_error(std::string("cannot read facet: bad format: ") + iss.str());
     }
     {
-        std::string line, endloop;
-        if(!std::getline(f, line)) return false;
-        std::istringstream iss(line);
-        if(!(iss >> endloop)) return false;
-        if(endloop != "endloop") return false;
+        std::string endloop;
+        std::istringstream iss(lines[p++]);
+        if(!(iss >> endloop) || endloop != "endloop")
+            throw std::runtime_error(std::string("cannot read facet: bad format: ") + iss.str());
     }
     {
-        std::string line, endfacet;
-        if(!std::getline(f, line)) return false;
-        std::istringstream iss(line);
-        if(!(iss >> endfacet)) return false;
-        if(endfacet != "endfacet") return false;
+        std::string endfacet;
+        std::istringstream iss(lines[p++]);
+        if(!(iss >> endfacet) || endfacet != "endfacet")
+            throw std::runtime_error(std::string("cannot read facet: bad format: ") + iss.str());
     }
-    return true;
+    pos = p;
 }
 
-bool STLFacet::readBinary(std::ifstream &f) {
+void STLFacet::readBinary(std::ifstream &f) {
     f.read((char *)this, 12 * sizeof(float) + sizeof(uint16_t));
-    if(!f) return false;
-    return true;
+    if(!f)
+        throw std::runtime_error("cannot read facet: read failed");
 }
 
-bool STLFile::readAscii(const char *filename) {
+void STLFile::readAscii(const char *filename) {
     std::ifstream f(filename, std::ios::in);
-    return readAscii(f);
+    readAscii(f);
 }
 
-bool STLFile::readBinary(const char *filename) {
+void STLFile::readBinary(const char *filename) {
     std::ifstream f(filename, std::ios::in | std::ios::binary);
-    return readBinary(f);
+    readBinary(f);
 }
 
-bool STLFile::readAscii(std::ifstream &f) {
+void STLFile::readAscii(std::ifstream &f) {
+    std::string line;
+    std::vector<std::string> lines;
+    while(std::getline(f, line))
+        if(line.size())
+            lines.push_back(line);
+    size_t pos = 0;
+
     std::string solidName;
     facets.clear();
     {
-        std::string line, solid;
-        if(!std::getline(f, line)) return false;
-        std::istringstream iss(line);
-        if(!(iss >> solid >> solidName)) return false;
-        if(solid != "solid") return false;
+        std::string solid;
+        std::istringstream iss(lines[pos]);
+        if(!(iss >> solid >> solidName) || solid != "solid")
+            throw std::runtime_error(std::string("cannot read solid: bad format") + iss.str());
+        pos++;
     }
     {
         while(true) {
             STLFacet facet;
-            if(!facet.readAscii(f)) break;
+            try {
+                facet.readAscii(lines, pos);
+            } catch(std::exception &ex) {
+                break;
+            }
             facets.push_back(facet);
         }
     }
     {
-        std::string line, endsolid, solidName1;
-        if(!std::getline(f, line)) return false;
-        std::istringstream iss(line);
-        if(!(iss >> endsolid >> solidName1)) return false;
-        if(endsolid != "endsolid") return false;
-        if(solidName1 != solidName) return false;
+        std::string endsolid, solidName1 = solidName;
+        std::istringstream iss(lines[pos]);
+        if((!(iss >> endsolid) && !(iss >> endsolid >> solidName1)) || endsolid != "endsolid" || solidName1 != solidName)
+            throw std::runtime_error(std::string("cannot read solid: bad format") + iss.str());
+        pos++;
     }
-    return true;
 }
 
-bool STLFile::readBinary(std::ifstream &f) {
+void STLFile::readBinary(std::ifstream &f) {
     f.ignore(80); // skip header
-    if(!f) return false;
+    if(!f) throw std::runtime_error("");
     uint32_t n;
     f.read((char *)&n, 4);
-    if(!f) return false;
+    if(!f) throw std::runtime_error("");
     facets.resize(n);
     for(int i = 0; i < n; i++) {
-        if(!facets[i].readBinary(f))
-            return false;
+        facets[i].readBinary(f);
     }
-    return true;
 }
 

@@ -30,13 +30,10 @@ TriMesh::TriMesh() {
 TriMesh::~TriMesh() {
 }
 
-void TriMesh::create(Environment *environment, const char *inputfile) {
+void TriMesh::create(Environment *environment, const char *inputfile, bool binary, float scaleFactor) {
     STLFile f;
-    if(!f.readBinary(inputfile))
-        if(!f.readAscii(inputfile)) {
-            std::cout << "STL load failed: " << inputfile << std::endl;
-            exit(1);
-        }
+    if(binary) f.readBinary(inputfile);
+    else f.readAscii(inputfile);
 
     this->vertex_count = 3 * f.facets.size();
     this->triangle_count = f.facets.size();
@@ -44,19 +41,19 @@ void TriMesh::create(Environment *environment, const char *inputfile) {
     this->triangles = new dTriIndex[3 * this->triangle_count];
     size_t vertex_idx = 0;
     for(size_t i = 0; i < f.facets.size(); i++) {
-        this->vertices[3 * vertex_idx + 0] = f.facets[i].ax;
-        this->vertices[3 * vertex_idx + 1] = f.facets[i].ay;
-        this->vertices[3 * vertex_idx + 2] = f.facets[i].az;
+        this->vertices[3 * vertex_idx + 0] = scaleFactor * f.facets[i].ax;
+        this->vertices[3 * vertex_idx + 1] = scaleFactor * f.facets[i].ay;
+        this->vertices[3 * vertex_idx + 2] = scaleFactor * f.facets[i].az;
         this->triangles[vertex_idx] = vertex_idx;
         vertex_idx++;
-        this->vertices[3 * vertex_idx + 0] = f.facets[i].bx;
-        this->vertices[3 * vertex_idx + 1] = f.facets[i].by;
-        this->vertices[3 * vertex_idx + 2] = f.facets[i].bz;
+        this->vertices[3 * vertex_idx + 0] = scaleFactor * f.facets[i].bx;
+        this->vertices[3 * vertex_idx + 1] = scaleFactor * f.facets[i].by;
+        this->vertices[3 * vertex_idx + 2] = scaleFactor * f.facets[i].bz;
         this->triangles[vertex_idx] = vertex_idx;
         vertex_idx++;
-        this->vertices[3 * vertex_idx + 0] = f.facets[i].cx;
-        this->vertices[3 * vertex_idx + 1] = f.facets[i].cy;
-        this->vertices[3 * vertex_idx + 2] = f.facets[i].cz;
+        this->vertices[3 * vertex_idx + 0] = scaleFactor * f.facets[i].cx;
+        this->vertices[3 * vertex_idx + 1] = scaleFactor * f.facets[i].cy;
+        this->vertices[3 * vertex_idx + 2] = scaleFactor * f.facets[i].cz;
         this->triangles[vertex_idx] = vertex_idx;
         vertex_idx++;
     }

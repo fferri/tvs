@@ -11,6 +11,7 @@
 
 #include <inttypes.h>
 #include <fstream>
+#include <string>
 #include <vector>
 
 struct STLFacet {
@@ -20,18 +21,20 @@ struct STLFacet {
     float cx, cy, cz;
     uint16_t attr_count;
 
-    bool readAscii(std::ifstream &f);
-    bool readBinary(std::ifstream &f);
+    void readAscii(std::vector<std::string> &lines, size_t &pos);
+    void readBinary(std::ifstream &f);
 };
 
 struct STLFile {
     std::vector<STLFacet> facets;
     
-    bool readAscii(const char *filename);
-    bool readBinary(const char *filename);
+    void readAscii(const char *filename);
+    void readBinary(const char *filename);
     
-    bool readAscii(std::ifstream &f);
-    bool readBinary(std::ifstream &f);
+    void readAscii(std::ifstream &f);
+    void readBinary(std::ifstream &f);
+
+    void readAscii(std::vector<std::string> &lines, size_t pos);
 };
 
 #endif // STLFILE_H_INCLUDED

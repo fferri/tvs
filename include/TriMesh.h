@@ -26,7 +26,7 @@ public:
     
     TriMesh();
     virtual ~TriMesh();
-    void create(Environment *environment, const char *inputfile);
+    void create(Environment *environment, const char *inputfile, bool binary = false, float scaleFactor = 1.0);
     void destroy();
     void draw();
 };
