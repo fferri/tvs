@@ -41,15 +41,7 @@ dReal linearSpeed = 0, angularSpeed = 0;
 
 
 void initRobotPose() {
-    static dVector3 p = {
-            2.4554, 3.01316, 0.077984 + 0.0246
-    };
-    static dQuaternion q = {
-            -0.767196, -1.83056e-06, 2.44949e-06, -0.641413
-    };
-
-    environment->v->setPosition(p);
-    environment->v->setQuaternion(q);
+    environment->setObjectsPositions();
     vel_left = vel_right = 0.0;
     environment->v->setVelocities(0, 0);
 }

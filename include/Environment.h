@@ -17,6 +17,7 @@
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/ini_parser.hpp>
 #include "Vehicle.h"
+#include "TriMesh.h"
 
 struct ContactParams {
     int max_contacts;
@@ -61,6 +62,8 @@ struct Config {
 #define CONFIG_PATH "."
 #endif
 
+typedef std::map<std::string, TriMeshPtr> TriMeshMap;
+
 class Environment {
 public:
     Config config;
@@ -76,6 +79,7 @@ public:
     dGeomID planeGeom;
     Vehicle *v;
     std::vector<dGeomID> boxes;
+    TriMeshMap meshes;
     
     bool badCollision;
     std::vector<dContactGeom> contacts;
@@ -86,6 +90,7 @@ public:
     void readConfig();
     void create();
     void destroy();
+    void setObjectsPositions();
     std::string getGeomName(dGeomID geom) const;
     void setGeomName(dGeomID geom, const std::string &name);
     bool isCatPair(unsigned long cat1, unsigned long cat2, dGeomID *o1, dGeomID *o2);

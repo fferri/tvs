@@ -16,6 +16,8 @@
 #include <drawstuff/drawstuff.h>
 #include <ompl/util/Console.h>
 #include <boost/foreach.hpp>
+#include <boost/assign/list_of.hpp>
+#include <boost/format.hpp>
 #include <PlanarJoint.h>
 #include "utils.h"
 #include "TrackedVehicle.h"
@@ -64,34 +66,43 @@ void Environment::readConfig() {
     config.show_contact_points = false;
 }
 
-dGeomID createAABox(Environment *e, dReal x1, dReal y1, dReal z1, dReal x2, dReal y2, dReal z2, unsigned long cat = Category::OBSTACLE, dReal rx = 1.0, dReal ry = 0.0, dReal rz = 0.0, dReal rAngle = 0.0) {
-    static int i = 0;
-    dGeomID g = dCreateBox(e->space, x2 - x1, y2 - y1, z2 - z1);
-    dGeomSetPosition(g, x1 + 0.5 * (x2 - x1), y1 + 0.5 * (y2 - y1), z1 + 0.5 * (z2 - z1));
-    dMatrix3 R;
-    dRFromAxisAndAngle(R, rx, ry, rz, rAngle);
-    dGeomSetRotation(g, R);
-    dGeomSetCategoryBits(g, Category::TERRAIN);
-    dGeomSetCollideBits(g, Category::TRACK_GROUSER | Category::FLIPPER_GROUSER);
-    e->setGeomName(g, "panel" + boost::lexical_cast<std::string>(i++));
-    e->boxes.push_back(g);
-
-    return g;
+bool readPosition(const boost::property_tree::ptree &ini, std::string section, dVector3 &pos) {
+    //scene.get<float>("vehicle.position_x", 0.),
+    boost::optional<float> x = ini.get_optional<float>(section + ".position_x");
+    boost::optional<float> y = ini.get_optional<float>(section + ".position_y");
+    boost::optional<float> z = ini.get_optional<float>(section + ".position_z");
+    if(x) pos[0] = *x;
+    if(y) pos[1] = *y;
+    if(z) pos[2] = *z;
+    return x || y || z;
 }
 
-void makeStairCase(Environment *e, dReal x1, dReal y1, dReal z1, dReal x2, dReal y2, dReal z2, int axis, int steps) {
-    dReal dx = x2 - x1, dy = y2 - y1, dz = z2 - z1;
-    dReal riser = dz / dReal(steps);
-    dReal tread = (axis == 0 ? dx : dy) / dReal(steps);
-    unsigned long cat = Category::TERRAIN;
-    for(int i = 0; i < steps; i++) {
-        if(axis == 0)
-            createAABox(e, x1 + i * tread, y1, z1 + i * riser, x1 + (i + 1) * tread, y2, z1 + (i + 1) * riser, cat);
-        else if(axis == 1)
-            createAABox(e, x1, y1 + i * tread, z1 + i * riser, x2, y1 + (i + 1) * tread, z1 + (i + 1) * riser, cat);
-        else if(axis == 3)
-            createAABox(e, x1, y2 - (i + 1) * tread, z1 + i * riser, x2, y2 - i * tread, z1 + (i + 1) * riser, cat);
+bool readOrientation(const boost::property_tree::ptree &ini, std::string section, dMatrix3 &R) {
+    boost::optional<float> qx = ini.get_optional<float>(section + ".orientation_quaternion_x");
+    boost::optional<float> qy = ini.get_optional<float>(section + ".orientation_quaternion_y");
+    boost::optional<float> qz = ini.get_optional<float>(section + ".orientation_quaternion_z");
+    boost::optional<float> qw = ini.get_optional<float>(section + ".orientation_quaternion_w");
+    if(qx && qy && qz && qw) {
+        dQuaternion q = {*qx, *qy, *qz, *qw};
+        dQtoR(q, R);
+        return true;
     }
+    boost::optional<float> ax = ini.get_optional<float>(section + ".orientation_axis_x");
+    boost::optional<float> ay = ini.get_optional<float>(section + ".orientation_axis_y");
+    boost::optional<float> az = ini.get_optional<float>(section + ".orientation_axis_z");
+    boost::optional<float> angle = ini.get_optional<float>(section + ".orientation_axis_angle");
+    if(ax && ay && az && angle) {
+        dRFromAxisAndAngle(R, *ax, *ay, *az, *angle);
+        return true;
+    }
+    boost::optional<float> ex = ini.get_optional<float>(section + ".orientation_euler_x");
+    boost::optional<float> ey = ini.get_optional<float>(section + ".orientation_euler_y");
+    boost::optional<float> ez = ini.get_optional<float>(section + ".orientation_euler_z");
+    if(ex && ey && ez) {
+        dRFromEulerAngles(R, *ex, *ey, *ez);
+        return true;
+    }
+    return false;
 }
 
 void Environment::create() {
@@ -121,27 +132,29 @@ void Environment::create() {
     dGeomSetCategoryBits(this->planeGeom, Category::TERRAIN);
     dGeomSetCollideBits(this->planeGeom, Category::TRACK_GROUSER | Category::FLIPPER_GROUSER | Category::OBSTACLE);
 
+    boost::property_tree::ptree scene;
+    boost::property_tree::ini_parser::read_ini(CONFIG_PATH "/scene.ini", scene);
+
     if(this->v) this->v->create(this);
 
-    const dReal h = 1.3; // wall height
-    const dReal t = 0.1; // wall thickness
-    const dReal T = 0.25; // arch thickness
-    const dReal l = 4; // ramp length
-    const dReal W = 9; // total width
-    const dReal D = 8; // total depth
-    const dReal O = 3; // arch width
-    const dReal w = 2; // ramp width
-    const dReal sl = 5; // staircase length
-    dReal a = atan2(h,l), l2 = hypot(h,l);
-    createAABox(this, 0,   0,   0,   W-O, t,   h);
-    createAABox(this, 0,   D-t, 0,   W,   D,   h);
-    createAABox(this, 0,   0,   0,   t,   D,   h);
-    createAABox(this, W-t, 0,   0,   W,   D,   h);
-    createAABox(this, W-O, 0,   0,   W-O+T, w, h);
-    createAABox(this, W-T, 0,   0,   W,   w, h);
-    createAABox(this, W-O, 0,   h-t, W,   w, h, Category::TERRAIN);
-    createAABox(this, W-O-0.5*l-0.5*l2, 0, 0.5*h-0.5*t-0.5*t, W-O-0.5*l+0.5*l2, 1.5, 0.5*h+0.5*t-0.5*t, Category::TERRAIN, 0, 1, 0, -a);
-    makeStairCase(this, W-w, w, 0, W, w+sl, h, 3, 10);
+    size_t meshIndex = 0;
+    while(true) {
+        std::string k = "mesh";
+        k += boost::lexical_cast<std::string>(meshIndex++);
+        boost::optional<std::string> file = scene.get_optional<std::string>(k + ".file");
+        if(file) {
+            TriMeshPtr m(new TriMesh);
+            std::string filefmt = scene.get<std::string>(k + ".file_format", "binary");
+            float scale = scene.get<float>(k + ".scale_factor", 1.0);
+            m->create(this, file.get().c_str(), filefmt == "binary", scale);
+            dGeomSetCategoryBits(m->geom, Category::TERRAIN);
+            dGeomSetCollideBits(m->geom, Category::TRACK_GROUSER | Category::FLIPPER_GROUSER | Category::OBSTACLE);
+            this->meshes[scene.get<std::string>(k + ".name", k)] = m;
+        }
+        else break;
+    }
+
+    this->setObjectsPositions();
 }
 
 void Environment::destroy() {
@@ -151,7 +164,47 @@ void Environment::destroy() {
         dWorldSetStepThreadingImplementation(this->world, NULL, NULL);
         dThreadingFreeImplementation(this->threading);
     }
+
     if(this->v) this->v->destroy();
+
+    BOOST_FOREACH(const TriMeshMap::value_type &v, this->meshes) {
+        v.second->destroy();
+    }
+}
+
+void Environment::setObjectsPositions() {
+    boost::property_tree::ptree scene;
+    boost::property_tree::ini_parser::read_ini(CONFIG_PATH "/scene.ini", scene);
+
+    if(this->v) {
+        dVector3 pos;
+        readPosition(scene, "vehicle", pos);
+        this->v->setPosition(pos);
+        dMatrix3 R;
+        readOrientation(scene, "vehicle", R);
+        this->v->setRotation(R);
+    }
+
+    size_t meshIndex = 0;
+    while(true) {
+        std::string k = "mesh";
+        k += boost::lexical_cast<std::string>(meshIndex++);
+        boost::optional<std::string> file = scene.get_optional<std::string>(k + ".file");
+        if(file) {
+            std::string name = scene.get<std::string>(k + ".name", k);
+            TriMeshPtr m = this->meshes[name];
+            dVector3 pos;
+            readPosition(scene, k, pos);
+            pos[0] += (m->maxX - m->minX) / 2;
+            pos[1] += (m->maxY - m->minY) / 2;
+            pos[2] += -m->minZ;
+            dGeomSetPosition(m->geom, pos[0], pos[1], pos[2]);
+            dMatrix3 R;
+            readOrientation(scene, k, R);
+            dGeomSetRotation(m->geom, R);
+        }
+        else break;
+    }
 }
 
 std::string Environment::getGeomName(dGeomID geom) const {
@@ -278,6 +331,11 @@ void Environment::draw() {
         dReal sides[3];
         dGeomBoxGetLengths(*it, sides);
         dsDrawBoxD(pos, R, sides);
+    }
+
+    dsSetColorAlpha(0.6, 0.6, 0.7, 0.8);
+    BOOST_FOREACH(const TriMeshMap::value_type &v, this->meshes) {
+        v.second->draw();
     }
 }
 
