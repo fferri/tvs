@@ -11,6 +11,7 @@
 
 #include <ode/ode.h>
 #include <inttypes.h>
+#include <boost/shared_ptr.hpp>
 
 class Environment;
 
@@ -32,5 +33,7 @@ public:
     void destroy();
     void draw();
 };
+
+typedef boost::shared_ptr<TriMesh> TriMeshPtr;
 
 #endif // TRIMESH_H_INCLUDED
