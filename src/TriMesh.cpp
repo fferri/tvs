@@ -57,6 +57,20 @@ void TriMesh::create(Environment *environment, const char *inputfile, bool binar
         this->triangles[vertex_idx] = vertex_idx;
         vertex_idx++;
     }
+    for(size_t i = 0; i < this->vertex_count; i++) {
+        if(i == 0 || this->vertices[3 * i + 0] < this->minX)
+            this->minX = this->vertices[3 * i + 0];
+        if(i == 0 || this->vertices[3 * i + 0] > this->maxX)
+            this->maxX = this->vertices[3 * i + 0];
+        if(i == 0 || this->vertices[3 * i + 1] < this->minY)
+            this->minY = this->vertices[3 * i + 1];
+        if(i == 0 || this->vertices[3 * i + 1] > this->maxY)
+            this->maxY = this->vertices[3 * i + 1];
+        if(i == 0 || this->vertices[3 * i + 2] < this->minZ)
+            this->minZ = this->vertices[3 * i + 2];
+        if(i == 0 || this->vertices[3 * i + 2] > this->maxZ)
+            this->maxZ = this->vertices[3 * i + 2];
+    }
 
     this->triMeshDataID = dGeomTriMeshDataCreate();
     dGeomTriMeshDataBuild(this->triMeshDataID, this->vertices, 3 * sizeof(dReal), this->vertex_count, this->triangles, 3 * this->triangle_count, 3 * sizeof(dTriIndex));

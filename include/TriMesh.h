@@ -24,6 +24,8 @@ public:
     dTriIndex *triangles;
     int triangle_count;
     
+    dReal minX, maxX, minY, maxY, minZ, maxZ;
+
     TriMesh();
     virtual ~TriMesh();
     void create(Environment *environment, const char *inputfile, bool binary = false, float scaleFactor = 1.0);
