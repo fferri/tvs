@@ -143,6 +143,7 @@ void Environment::create() {
         k += boost::lexical_cast<std::string>(meshIndex++);
         boost::optional<std::string> file = scene.get_optional<std::string>(k + ".file");
         if(file) {
+            std::cout << "Loading mesh " << file.get() << std::endl;
             TriMeshPtr m(new TriMesh);
             std::string filefmt = scene.get<std::string>(k + ".file_format", "binary");
             float scale = scene.get<float>(k + ".scale_factor", 1.0);
@@ -193,13 +194,12 @@ void Environment::setObjectsPositions() {
         if(file) {
             std::string name = scene.get<std::string>(k + ".name", k);
             TriMeshPtr m = this->meshes[name];
-            dVector3 pos;
+            dVector3 pos = {0., 0., 0.}, c = {(m->maxX + m->minX) / 2, (m->maxY + m->minY) / 2, m->minZ};
             readPosition(scene, k, pos);
-            pos[0] += (m->maxX - m->minX) / 2;
-            pos[1] += (m->maxY - m->minY) / 2;
-            pos[2] += -m->minZ;
+            for(int i = 0; i < 3; i++) pos[i] -= c[i];
             dGeomSetPosition(m->geom, pos[0], pos[1], pos[2]);
             dMatrix3 R;
+            dRSetIdentity(R);
             readOrientation(scene, k, R);
             dGeomSetRotation(m->geom, R);
         }
