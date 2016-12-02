@@ -12,6 +12,7 @@ find_package(GLUT REQUIRED)
 
 find_package(Boost REQUIRED COMPONENTS system thread filesystem)
 find_package(PCL REQUIRED COMPONENTS common filters io kdtree sample_consensus)
+find_package(octomap REQUIRED)
 find_package(ompl REQUIRED)
 find_package(SDL2 REQUIRED)
 
@@ -30,6 +31,7 @@ set(LIBS
         ${GLUT_LIBRARIES}
         ${Boost_LIBRARIES}
         ${PCL_LIBRARIES}
+        ${OCTOMAP_LIBRARIES}
         ${SDL2_LIBRARY}
         ${OMPL_LIBRARIES}
         ${ODE_LIBRARIES}
@@ -42,6 +44,7 @@ include_directories(
         ${GLUT_INCLUDE_DIR}
         ${Boost_INCLUDE_DIRS}
         ${PCL_INCLUDE_DIRS}
+        ${OCTOMAP_INCLUDE_DIRS}
         ${SDL2_INCLUDE_DIR}
         ${OMPL_INCLUDE_DIRS}
         ${ODE_INCLUDE_DIRS}
