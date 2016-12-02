@@ -24,7 +24,7 @@ void Flipper::create(Environment *environment) {
     dMatrix3 flipperEdgeRotation;
     dRFromAxisAndAngle(flipperEdgeRotation, 0, 1, 0, flipperEdgeAngle);
 
-    this->strutGeoms[0] = dCreateBox(environment->space, l, this->m->trackDepth, r2);
+    this->strutGeoms[0] = dCreateBox(environment->space, l, 0.95*this->m->trackDepth, r2);
     environment->setGeomName(this->strutGeoms[0], this->name + ".strut1");
     dGeomSetCategoryBits(this->strutGeoms[0], Category::FLIPPER_GUIDE);
     dGeomSetCollideBits(this->strutGeoms[0], Category::FLIPPER_GROUSER);
@@ -35,7 +35,7 @@ void Flipper::create(Environment *environment) {
 #if NUM_FLIPPER_STRUT_GEOMS >= 2
     dRFromAxisAndAngle(flipperEdgeRotation, 0, 1, 0, -flipperEdgeAngle);
 
-    this->strutGeoms[1] = dCreateBox(environment->space, l, this->m->trackDepth, r2);
+    this->strutGeoms[1] = dCreateBox(environment->space, l, 0.95*this->m->trackDepth, r2);
     environment->setGeomName(this->strutGeoms[1], this->name + ".strut2");
     dGeomSetCategoryBits(this->strutGeoms[1], Category::FLIPPER_GUIDE);
     dGeomSetCollideBits(this->strutGeoms[1], Category::FLIPPER_GROUSER);

@@ -52,7 +52,7 @@ void Track::create(Environment *environment) {
     TrackBase::create(environment);
 
 #if NUM_TRACK_STRUT_GEOMS >= 1
-    this->strutGeoms[0] = dCreateBox(environment->space, 0.9*this->m->distance, this->m->trackDepth, 1.95*this->m->radius[0]);
+    this->strutGeoms[0] = dCreateBox(environment->space, 0.9*this->m->distance, 0.95*this->m->trackDepth, 1.95*this->m->radius[0]);
     environment->setGeomName(this->strutGeoms[0], this->name + ".strut");
     dGeomSetCategoryBits(this->strutGeoms[0], Category::TRACK_GUIDE);
     dGeomSetCollideBits(this->strutGeoms[0], Category::TRACK_GROUSER);
