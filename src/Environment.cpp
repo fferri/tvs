@@ -148,8 +148,8 @@ void Environment::create() {
             std::string filefmt = scene.get<std::string>(k + ".file_format", "binary");
             float scale = scene.get<float>(k + ".scale_factor", 1.0);
             m->create(this, file.get().c_str(), filefmt == "binary", scale);
-            dGeomSetCategoryBits(m->geom, Category::TERRAIN);
-            dGeomSetCollideBits(m->geom, Category::TRACK_GROUSER | Category::FLIPPER_GROUSER | Category::OBSTACLE);
+            dGeomSetCategoryBits(m->geom, 0);
+            dGeomSetCollideBits(m->geom, Category::TRACK_GROUSER | Category::TRACK_WHEEL | Category::FLIPPER_GROUSER | Category::FLIPPER_WHEEL | Category::TRACK | Category::FLIPPER | Category::OBSTACLE | Category::TERRAIN);
             this->meshes[scene.get<std::string>(k + ".name", k)] = m;
         }
         else break;
