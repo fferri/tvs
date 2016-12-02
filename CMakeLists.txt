@@ -20,12 +20,10 @@ find_package(SDL2 REQUIRED)
 set(ODE_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/../ode/include)
 file(GLOB ODE_LIBRARIES "${CMAKE_SOURCE_DIR}/../ode/ode/src/.libs/*${CMAKE_SHARED_LIBRARY_SUFFIX}")
 file(GLOB DRAWSTUFF_LIBRARIES "${CMAKE_SOURCE_DIR}/../ode/drawstuff/src/.libs/*${CMAKE_STATIC_LIBRARY_SUFFIX}")
-set(FLAGS "-Wno-nullability-completeness")
+set(FLAGS "-Wno-nullability-completeness -Wno-redeclared-class-member")
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${FLAGS}")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${FLAGS}")
 
-message(STATUS "OPENGL_LIBRARIES = ${OPENGL_LIBRARIES}")
-message(STATUS "GLUT_LIBRARIES = ${GLUT_LIBRARIES}")
 set(LIBS
         ${OPENGL_LIBRARIES}
         ${GLUT_LIBRARIES}
@@ -53,6 +51,7 @@ include_directories(
 
 set(BASE_SOURCES
         src/Environment.cpp
+        src/OcTreeBuilder.cpp
         src/TriMesh.cpp
         src/STLFile.cpp
         src/ODEUtils.cpp
