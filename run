@@ -7,10 +7,11 @@ fi
 
 TVS_DIR="`dirname "$0"`"
 ODE_LIB_DIR="`cd "$TVS_DIR"; cd ../ode; pwd`/ode/src/.libs"
+OMPL_LIB_DIR="`cd "$TVS_DIR"; cd ../ompl; pwd`/build/Release/lib"
 OCTOMAP_LIB_DIR="/opt/ros/indigo/lib"
 EXECUTABLE="`basename "$1"`"
 
-export DYLD_LIBRARY_PATH="$ODE_LIB_DIR:$OCTOMAP_LIB_DIR:$DYLD_LIBRARY_PATH"
+export DYLD_LIBRARY_PATH="$ODE_LIB_DIR:$OMPL_LIB_DIR:$OCTOMAP_LIB_DIR:$DYLD_LIBRARY_PATH"
 
 "$TVS_DIR/$EXECUTABLE"
 
