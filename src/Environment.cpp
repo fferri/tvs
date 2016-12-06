@@ -179,9 +179,11 @@ void Environment::create() {
 
     this->setObjectsPositions();
 
-    OcTreeBuilder occGridBuilder(this, 7, 10.);
-    occGridBuilder.check();
-    occGridBuilder.saveOcTree("test.bt");
+    if(false) {
+        OcTreeBuilder occGridBuilder(this, 7, 10.);
+        occGridBuilder.check();
+        occGridBuilder.saveOcTree("test.bt");
+    }
 }
 
 void Environment::destroy() {
