@@ -49,7 +49,7 @@ include_directories(
         ../ode/ode/src/
 )
 
-set(BASE_SOURCES
+add_library(tvs_common OBJECT
         src/Environment.cpp
         src/OcTreeBuilder.cpp
         src/TriMesh.cpp
@@ -75,12 +75,12 @@ set(BASE_SOURCES
         src/SimpleTrackedVehicleEnvironment.cpp
 )
 
-add_executable(simulator ${BASE_SOURCES} src/simulator.cpp)
+add_executable(simulator $<TARGET_OBJECTS:tvs_common> src/simulator.cpp)
 target_link_libraries(simulator ${LIBS})
 
-add_executable(planner ${BASE_SOURCES}  src/OMPLTVSControlSpace.cpp src/OMPLTVSEnvironment.cpp src/OMPLTVSSimpleSetup.cpp src/OMPLTVSStatePropagator.cpp src/OMPLTVSStateSpace.cpp src/OMPLTVSStateValidityChecker.cpp src/planner.cpp)
+add_executable(planner $<TARGET_OBJECTS:tvs_common> src/OMPLTVSControlSpace.cpp src/OMPLTVSEnvironment.cpp src/OMPLTVSSimpleSetup.cpp src/OMPLTVSStatePropagator.cpp src/OMPLTVSStateSpace.cpp src/OMPLTVSStateValidityChecker.cpp src/planner.cpp)
 target_link_libraries(planner ${LIBS})
 
-add_executable(search-vis ${BASE_SOURCES} src/search_vis.cpp)
+add_executable(search-vis $<TARGET_OBJECTS:tvs_common> src/search_vis.cpp)
 target_link_libraries(search-vis ${LIBS})
 
