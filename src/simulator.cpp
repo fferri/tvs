@@ -33,12 +33,10 @@ Environment *environment;
 SDL_Joystick *joystick;
 dReal vel_left = 0.0, vel_right = 0.0;
 bool following = false;
-dReal kbd_gain = 2.0;
 
 bool flipperFLbuttonDown = false, flipperFRbuttonDown = false, flipperRLbuttonDown = false, flipperRRbuttonDown = false;
 int flipperMovementSpeed = 0;
 dReal linearSpeed = 0, angularSpeed = 0;
-
 
 void initRobotPose() {
     environment->setObjectsPositions();
@@ -92,18 +90,16 @@ void start() {
 }
 
 void step(int pause) {
+    dReal maxLinearSpeed = environment->config.joystick.gain;
+    dReal maxAngularSpeed = maxLinearSpeed * 2.0;
+    dReal tracksDistance = 0.4; // FIXME: determine it from actual body positions
+    dReal steeringEfficiency = 0.5;
+
     if(environment->config.joystick.enabled) {
         SDL_Event event;
-        dReal maxLinearSpeed;
-        dReal maxAngularSpeed;
-        dReal tracksDistance = 0.4;
-        dReal steeringEfficiency = 0.5;
-
         while(SDL_PollEvent(&event)) {
             switch(event.type) {
                 case SDL_JOYAXISMOTION:
-                    maxLinearSpeed = environment->config.world.max_track_speed * environment->config.joystick.gain;
-                    maxAngularSpeed = maxLinearSpeed * 2.0;
                     switch (event.jaxis.axis) {
                         case 0:
                             angularSpeed = maxAngularSpeed * event.jaxis.value / 32768.0;
@@ -118,18 +114,8 @@ void step(int pause) {
                             flipperRRbuttonDown = (event.jaxis.value >= -32767);
                             break;
                     }
-
                     vel_left = linearSpeed + angularSpeed * tracksDistance / 2 / steeringEfficiency;
                     vel_right = linearSpeed - angularSpeed * tracksDistance / 2 / steeringEfficiency;
-
-                    if (fabs(vel_left) > maxLinearSpeed) {
-                        vel_left = sgn(vel_left) * maxLinearSpeed;
-                    }
-                    if (fabs(vel_right) > maxLinearSpeed) {
-                        vel_right = sgn(vel_right) * maxLinearSpeed;
-                    }
-
-//                    std::cout << (uint)event.jaxis.axis << " " << event.jaxis.value << std::endl;
                     break;
                 case SDL_JOYBUTTONDOWN:
                     switch (event.jbutton.button) {
@@ -140,7 +126,6 @@ void step(int pause) {
                             flipperFRbuttonDown = true;
                             break;
                     }
-//                    std::cout << (uint)event.jbutton.button << " " << (uint)event.jbutton.state << std::endl;
                     break;
                 case SDL_JOYBUTTONUP:
                     switch (event.jbutton.button) {
@@ -151,7 +136,6 @@ void step(int pause) {
                             flipperFRbuttonDown = false;
                             break;
                     }
-//                    std::cout << (uint)event.jbutton.button << " " << (uint)event.jbutton.state << std::endl;
                     break;
                 case SDL_JOYHATMOTION:
                     if (event.jhat.hat == 0) {
@@ -166,17 +150,19 @@ void step(int pause) {
                                 flipperMovementSpeed = 0;
                         }
                     }
-//                    std::cout << (uint)event.jhat.hat << " " << (uint)event.jhat.value << std::endl;
                     break;
             }
         }
     }
+
     if(following) {
         const dReal *p = environment->v->getPosition();
         follow(p[0], p[1], p[2]);
     }
 
-    environment->v->setVelocities(kbd_gain * vel_left, kbd_gain * vel_right);
+    vel_left = fmax(-1.0, fmin(1.0, vel_left));
+    vel_right = fmax(-1.0, fmin(1.0, vel_right));
+    environment->v->setVelocities(vel_left, vel_right);
 
     VEHICLE_TYPE* tv = dynamic_cast<VEHICLE_TYPE*>(environment->v);
     if (tv != NULL) {
@@ -208,21 +194,17 @@ void printInfo() {
 }
 
 void command(int cmd) {
-    const dReal V = environment->config.world.max_track_speed;
     switch(cmd) {
-        case 'd': vel_left = V; vel_right = -V; break;
-        case 'a': vel_left = -V; vel_right = V; break;
-        case 'w': vel_left = V; vel_right = V; break;
-        case 's': vel_left = -V; vel_right = -V; break;
-        case 'q': vel_left *= 0.33; break;
-        case 'e': vel_right *= 0.33; break;
+        case 'd': vel_left += 0.5; vel_right -= 0.5; break;
+        case 'a': vel_left -= 0.5; vel_right += 0.5; break;
+        case 'w': vel_left += 0.5; vel_right += 0.5; break;
+        case 's': vel_left -= 0.5; vel_right -= 0.5; break;
         case ' ': vel_left = 0; vel_right = 0; break;
         case 'f': following ^= 1; break;
         case 'c': environment->config.show_contact_points ^= 1; break;
         case 'p': printInfo(); break;
         case 'r': initRobotPose(); break;
     }
-    if(cmd >= '1' && cmd <= '9') kbd_gain = (cmd - '1' + 1) / 5.0;
 }
 
 int main(int argc, char **argv) {

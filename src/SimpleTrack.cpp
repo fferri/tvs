@@ -10,15 +10,11 @@
 #include "Environment.h"
 #include <drawstuff/drawstuff.h>
 
-SimpleTrack::SimpleTrack(const std::string &name_, dReal radius1_, dReal radius2_, dReal distance_, dReal trackDepth_,
-                         int yDirection, unsigned long additionalCategory) :
-        SimpleTrackBase(name_, radius1_, radius2_, distance_, trackDepth_, additionalCategory), yDirection(yDirection) {
-
+SimpleTrack::SimpleTrack(Environment *environment_, const std::string &name_, dReal radius1_, dReal radius2_, dReal distance_, dReal trackDepth_, int yDirection, unsigned long additionalCategory) : SimpleTrackBase(environment_, name_, radius1_, radius2_, distance_, trackDepth_, additionalCategory), yDirection(yDirection) {
     for (size_t i=0; i < NUM_FLIPPERS; i++) {
         flippers[i] = NULL;
         flipperJoints[i] = NULL;
     }
-
 }
 
 SimpleTrack::~SimpleTrack() {
@@ -33,35 +29,30 @@ SimpleTrack::~SimpleTrack() {
 }
 
 void SimpleTrack::prepareFlippers(dReal radius1_, dReal radius2_, dReal distance_, dReal flipperWidth_) {
-
     if (NUM_FLIPPERS > 0) {
-        this->flippers[0] = new SimpleFlipper(name + ".frontFlipper", radius1_, radius2_, distance_, flipperWidth_,
-                                              this->additionalCategory | Category::FRONT);
+        this->flippers[0] = new SimpleFlipper(this->environment, name + ".frontFlipper", radius1_, radius2_, distance_, flipperWidth_, this->additionalCategory | Category::FRONT);
     }
 
     if (NUM_FLIPPERS > 1) {
-        this->flippers[1] = new SimpleFlipper(name + ".rearFlipper", radius1_, radius2_, distance_, flipperWidth_,
-                                              this->additionalCategory | Category::REAR);
+        this->flippers[1] = new SimpleFlipper(this->environment, name + ".rearFlipper", radius1_, radius2_, distance_, flipperWidth_, this->additionalCategory | Category::REAR);
     }
-
 }
 
-void SimpleTrack::create(Environment *environment) {
-    SimpleTrackBase::create(environment);
-
+void SimpleTrack::create() {
+    SimpleTrackBase::create();
 
     for (size_t i=0; i < NUM_FLIPPERS; i++) {
-        flippers[i]->create(environment);
+        flippers[i]->create();
 
         // origin of the track is in the front wheel
         dRigidBodyArraySetPosition(flippers[i]->bodyArray, i * this->betweenWheelsDistance, yDirection * (this->trackDepth / 2.0 + flippers[i]->trackDepth / 2 + 0.005), 0);
 
-        flipperJoints[i] = dJointCreateHinge(environment->world, 0);
+        flipperJoints[i] = dJointCreateHinge(this->environment->world, 0);
         dJointAttach(flipperJoints[i], trackBody, flippers[i]->trackBody);
         dJointSetHingeAnchor(flipperJoints[i], i * this->betweenWheelsDistance, yDirection * (this->trackDepth / 2 + flippers[i]->trackDepth / 2), 0);
         dJointSetHingeAxis(flipperJoints[i], 0, 1, 0);
 
-        flipperMotors[i] = dJointCreateAMotor(environment->world, 0);
+        flipperMotors[i] = dJointCreateAMotor(this->environment->world, 0);
         dJointSetAMotorMode(flipperMotors[i], dAMotorUser);
         dJointSetAMotorNumAxes(flipperMotors[i], 1);
         dJointAttach(flipperMotors[i], trackBody, flippers[i]->trackBody);
@@ -108,6 +99,8 @@ void SimpleTrack::draw() {
 }
 
 void SimpleTrack::setVelocity(dReal velocity) {
+    velocity = fmin(1.0, fmax(-1.0, velocity)) * this->environment->config.world.max_track_speed;
+
     this->velocity.set(velocity);
 
     for (size_t i=0; i < NUM_FLIPPERS; i++) {

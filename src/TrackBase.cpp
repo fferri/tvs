@@ -4,8 +4,7 @@
 #include "PlanarJoint.h"
 #include <drawstuff/drawstuff.h>
 
-TrackBase::TrackBase(const std::string &name_, size_t drivingWheelIndex, dReal radius1_, dReal radius2_, dReal distance_,
-                     size_t numGrousers_, dReal linkThickness_, dReal grouserHeight_, dReal trackDepth_) : name(name_) {
+TrackBase::TrackBase(Environment *environment_, const std::string &name_, size_t drivingWheelIndex, dReal radius1_, dReal radius2_, dReal distance_, size_t numGrousers_, dReal linkThickness_, dReal grouserHeight_, dReal trackDepth_) : environment(environment_), name(name_) {
     this->m = new TrackKinematicModel(radius1_, radius2_, distance_, numGrousers_, grouserHeight_, trackDepth_);
     this->drivingWheelIndex = drivingWheelIndex;
     this->density = 1.0;
@@ -31,8 +30,8 @@ TrackBase::~TrackBase() {
     delete this->m;
 }
 
-void TrackBase::create(Environment *environment) {
-    this->trackBody = dBodyCreate(environment->world);
+void TrackBase::create() {
+    this->trackBody = dBodyCreate(this->environment->world);
     this->bodyArray = dRigidBodyArrayCreate(this->trackBody);
     dMassSetBox(&this->trackMass, this->density, this->m->distance, this->m->radius[1], this->m->trackDepth);
     dBodySetMass(this->trackBody, &this->trackMass);
@@ -40,13 +39,13 @@ void TrackBase::create(Environment *environment) {
     dVector3 trackNormal = {0, 1, 0};
 
     for(int w = 0; w < 2; w++) {
-        this->wheelGeom[w] = dCreateCylinder(environment->space, this->m->radius[w], this->m->trackDepth);
-        environment->setGeomName(this->wheelGeom[w], this->name + ".wheel" + boost::lexical_cast<std::string>(w));
+        this->wheelGeom[w] = dCreateCylinder(this->environment->space, this->m->radius[w], this->m->trackDepth);
+        this->environment->setGeomName(this->wheelGeom[w], this->name + ".wheel" + boost::lexical_cast<std::string>(w));
         dGeomSetCategoryBits(this->wheelGeom[w], getWheelCategory());
         dGeomSetCollideBits(this->wheelGeom[w], getGrouserCategory() | Category::TERRAIN);
         dMassSetCylinder(&this->wheelMass[w], this->density, 3, this->m->radius[w], this->m->trackDepth);
 
-        this->wheelBody[w] = dBodyCreate(environment->world);
+        this->wheelBody[w] = dBodyCreate(this->environment->world);
         dRigidBodyArrayAdd(this->bodyArray, this->wheelBody[w]);
         dBodySetMass(this->wheelBody[w], &this->wheelMass[w]);
         dGeomSetBody(this->wheelGeom[w], this->wheelBody[w]);
@@ -55,7 +54,7 @@ void TrackBase::create(Environment *environment) {
         dRFromZAxis(wheelR, 0, 1, 0);
         dBodySetRotation(this->wheelBody[w], wheelR);
 
-        this->wheelJoint[w] = dJointCreateHinge(environment->world, 0);
+        this->wheelJoint[w] = dJointCreateHinge(this->environment->world, 0);
         dJointAttach(this->wheelJoint[w], this->trackBody, this->wheelBody[w]);
         dJointSetHingeAnchor(this->wheelJoint[w], w * this->m->distance, 0, 0);
         dJointSetHingeAxis(this->wheelJoint[w], 0, 1, 0);
@@ -64,8 +63,8 @@ void TrackBase::create(Environment *environment) {
         // this guide should avoid tracks slipping out of their designed place
         dReal gh = 2 * (0.2 + std::max(this->m->radius[0], this->m->radius[1]));
         dReal gw = gh + this->m->distance;
-        this->guideGeom[w] = dCreateBox(environment->space, gw, 0.01, gh);
-        environment->setGeomName(this->guideGeom[w], this->name + ".grouser_guide" + boost::lexical_cast<std::string>(w));
+        this->guideGeom[w] = dCreateBox(this->environment->space, gw, 0.01, gh);
+        this->environment->setGeomName(this->guideGeom[w], this->name + ".grouser_guide" + boost::lexical_cast<std::string>(w));
         dGeomSetCategoryBits(this->guideGeom[w], getGuideCategory());
         dGeomSetCollideBits(this->guideGeom[w], getGrouserCategory());
         dGeomSetBody(this->guideGeom[w], this->trackBody);
@@ -81,7 +80,7 @@ void TrackBase::create(Environment *environment) {
     const dReal f = 1.03;
 
     for(size_t i = 0; i < this->m->numGrousers; i++) {
-        this->linkBody[i] = dBodyCreate(environment->world);
+        this->linkBody[i] = dBodyCreate(this->environment->world);
         dRigidBodyArrayAdd(this->bodyArray, this->linkBody[i]);
         dMassSetBox(&this->linkMass[i], this->density, this->m->grouserHeight, this->m->trackDepth, f * this->m->grouserWidth);
         dBodySetMass(this->linkBody[i], &this->linkMass[i]);
@@ -89,14 +88,14 @@ void TrackBase::create(Environment *environment) {
         dVector3 pos; dMatrix3 R;
         this->m->computeGrouserTransform3D(i, pos, R);
 
-        this->linkGeom[i] = dCreateBox(environment->space, this->linkThickness, this->m->trackDepth, f * this->m->grouserWidth);
-        environment->setGeomName(this->linkGeom[i], this->name + ".grouser" + boost::lexical_cast<std::string>(i));
+        this->linkGeom[i] = dCreateBox(this->environment->space, this->linkThickness, this->m->trackDepth, f * this->m->grouserWidth);
+        this->environment->setGeomName(this->linkGeom[i], this->name + ".grouser" + boost::lexical_cast<std::string>(i));
         dGeomSetCategoryBits(this->linkGeom[i], getGrouserCategory());
         dGeomSetCollideBits(this->linkGeom[i], Category::TERRAIN | getWheelCategory() | Category::OBSTACLE | getGuideCategory());
         dGeomSetBody(this->linkGeom[i], this->linkBody[i]);
 
-        this->grouserGeom[i] = dCreateBox(environment->space, this->m->grouserHeight, this->m->trackDepth, this->linkThickness);
-        environment->setGeomName(this->grouserGeom[i], this->name + ".grouserTooth" + boost::lexical_cast<std::string>(i));
+        this->grouserGeom[i] = dCreateBox(this->environment->space, this->m->grouserHeight, this->m->trackDepth, this->linkThickness);
+        this->environment->setGeomName(this->grouserGeom[i], this->name + ".grouserTooth" + boost::lexical_cast<std::string>(i));
         dGeomSetCategoryBits(this->grouserGeom[i], getGrouserCategory());
         dGeomSetCollideBits(this->grouserGeom[i], Category::TERRAIN | getWheelCategory() | Category::OBSTACLE | getGuideCategory());
         dGeomSetBody(this->grouserGeom[i], this->linkBody[i]);
@@ -106,7 +105,7 @@ void TrackBase::create(Environment *environment) {
         dBodySetRotation(this->linkBody[i], R);
 
 #if !USE_GUIDE_GEOMS
-        this->guideJoints[i] = dJointCreatePlanar(environment->world, 0);
+        this->guideJoints[i] = dJointCreatePlanar(this->environment->world, 0);
         dJointAttach(this->guideJoints[i], this->linkBody[i], this->trackBody);
         dVector3 anchor = {0, 0, 0};
         dJointPlanarSetAnchor(this->guideJoints[i], pos);
@@ -124,7 +123,7 @@ void TrackBase::create(Environment *environment) {
         qz = pz - this->m->grouserWidth * f * 0.5 * dz;
         px = px + this->m->grouserWidth * f * 0.5 * dx;
         pz = pz + this->m->grouserWidth * f * 0.5 * dz;
-        this->linkJoint[i] = dJointCreateHinge(environment->world, 0);
+        this->linkJoint[i] = dJointCreateHinge(this->environment->world, 0);
         dJointAttach(this->linkJoint[i], this->linkBody[i], this->linkBody[j]);
         dJointSetHingeAnchor(this->linkJoint[i], px, 0, pz);
         dJointSetHingeAxis(this->linkJoint[i], 0, 1, 0);

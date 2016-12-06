@@ -7,14 +7,15 @@
 
 #include "SimpleTrackBase.h"
 
+class Environment;
+
 class SimpleFlipper : public SimpleTrackBase {
 public:
     LinVelProfInt velocity;
 
-    SimpleFlipper(const std::string &name_, dReal radius1_, dReal radius2_, dReal distance_, dReal trackDepth_,
-                  unsigned long additionalCategory);
+    SimpleFlipper(Environment *environment_, const std::string &name_, dReal radius1_, dReal radius2_, dReal distance_, dReal trackDepth_, unsigned long additionalCategory);
     virtual ~SimpleFlipper();
-    void create(Environment *environment);
+    void create();
     void destroy();
     void step(dReal stepSize);
     void draw();

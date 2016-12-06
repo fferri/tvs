@@ -17,12 +17,13 @@ class Environment;
 
 class Vehicle {
 public:
+    Environment *environment;
     std::string name;
     dRigidBodyArrayID bodyArray;
     
-    Vehicle(const std::string& name_) : name(name_) {}
+    Vehicle(Environment *environment_, const std::string& name_) : environment(environment_), name(name_) {}
     virtual ~Vehicle() {}
-    virtual void create(Environment *environment) = 0;
+    virtual void create() = 0;
     virtual void destroy() = 0;
     virtual void step(dReal stepSize) {}
     virtual void draw() = 0;

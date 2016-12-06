@@ -6,7 +6,7 @@
 #include "SkidSteeringVehicle.h"
 
 SkidSteerVehicleEnvironment::SkidSteerVehicleEnvironment() {
-    SkidSteeringVehicle *ssv = new SkidSteeringVehicle("robot", 1, -2, 0.301);
+    SkidSteeringVehicle *ssv = new SkidSteeringVehicle(this, "robot", 1, -2, 0.301);
     ssv->velocityLeft.setSlope(config.world.track_acceleration);
     ssv->velocityRight.setSlope(config.world.track_acceleration);
     this->v = ssv;

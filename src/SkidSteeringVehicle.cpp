@@ -15,7 +15,7 @@
 #include <drawstuff/drawstuff.h>
 #include "ODEUtils.h"
 
-SkidSteeringVehicle::SkidSteeringVehicle(const std::string& name_, dReal xOffset, dReal yOffset, dReal zOffset) : Vehicle(name_) {
+SkidSteeringVehicle::SkidSteeringVehicle(Environment *environment_, const std::string& name_, dReal xOffset, dReal yOffset, dReal zOffset) : Vehicle(environment_, name_) {
     this->wheelRadius = 0.078;
     this->wheelBase = 0.4997;
     this->wheelWidth = 0.097;
@@ -32,10 +32,10 @@ SkidSteeringVehicle::SkidSteeringVehicle(const std::string& name_, dReal xOffset
 SkidSteeringVehicle::~SkidSteeringVehicle() {
 }
 
-void SkidSteeringVehicle::create(Environment *environment) {
-    this->vehicleBody = dBodyCreate(environment->world);
-    this->vehicleGeom = dCreateBox(environment->space, this->vehicleBodyLength, this->vehicleBodyWidth, this->vehicleBodyHeight);
-    environment->setGeomName(this->vehicleGeom, name + ".vehicleGeom");
+void SkidSteeringVehicle::create() {
+    this->vehicleBody = dBodyCreate(this->environment->world);
+    this->vehicleGeom = dCreateBox(this->environment->space, this->vehicleBodyLength, this->vehicleBodyWidth, this->vehicleBodyHeight);
+    this->environment->setGeomName(this->vehicleGeom, name + ".vehicleGeom");
     dMassSetBox(&this->vehicleMass, this->density, this->vehicleBodyLength, this->vehicleBodyWidth, this->vehicleBodyHeight);
     dGeomSetCategoryBits(this->vehicleGeom, Category::OBSTACLE);
     dGeomSetCollideBits(this->vehicleGeom, Category::OBSTACLE | Category::TERRAIN);
@@ -47,19 +47,19 @@ void SkidSteeringVehicle::create(Environment *environment) {
     dReal w = this->vehicleBodyWidth + this->wheelWidth + 2 * this->trackVehicleSpace;
     for(int fr = 0; fr < 2; fr++) {
         for(int lr = 0; lr < 2; lr++) {
-            this->wheelGeom[fr][lr] = dCreateCylinder(environment->space, this->wheelRadius, this->wheelWidth);
-            environment->setGeomName(this->wheelGeom[fr][lr], this->name + "." + (!fr ? "front" : "rear") + (!lr ? "Left" : "Right") + "Wheel");
+            this->wheelGeom[fr][lr] = dCreateCylinder(this->environment->space, this->wheelRadius, this->wheelWidth);
+            this->environment->setGeomName(this->wheelGeom[fr][lr], this->name + "." + (!fr ? "front" : "rear") + (!lr ? "Left" : "Right") + "Wheel");
             dGeomSetCategoryBits(this->wheelGeom[fr][lr], Category::TRACK_GROUSER);
             dGeomSetCollideBits(this->wheelGeom[fr][lr], Category::TERRAIN);
             dMassSetCylinder(&this->wheelMass[fr][lr], this->density, 3, this->wheelRadius, this->wheelWidth);
-            this->wheelBody[fr][lr] = dBodyCreate(environment->world);
+            this->wheelBody[fr][lr] = dBodyCreate(this->environment->world);
             dBodySetMass(this->wheelBody[fr][lr], &this->wheelMass[fr][lr]);
             dGeomSetBody(this->wheelGeom[fr][lr], this->wheelBody[fr][lr]);
             dBodySetPosition(this->wheelBody[fr][lr], this->xOffset + (fr - 0.5) * this->wheelBase, this->yOffset + w * (lr - 0.5), this->zOffset);
             dMatrix3 wheelR;
             dRFromZAxis(wheelR, 0, 2 * lr - 1, 0);
             dBodySetRotation(this->wheelBody[fr][lr], wheelR);
-            this->wheelJoint[fr][lr] = dJointCreateHinge(environment->world, 0);
+            this->wheelJoint[fr][lr] = dJointCreateHinge(this->environment->world, 0);
             dJointAttach(this->wheelJoint[fr][lr], this->vehicleBody, this->wheelBody[fr][lr]);
             dJointSetHingeAnchor(this->wheelJoint[fr][lr], this->xOffset + (fr - 0.5) * this->wheelBase, this->yOffset + this->vehicleBodyWidth * (lr - 0.5), this->zOffset);
             dJointSetHingeAxis(this->wheelJoint[fr][lr], 0, 1, 0);

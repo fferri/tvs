@@ -6,7 +6,7 @@
 #include "TrackedVehicle.h"
 
 TrackedVehicleEnvironment::TrackedVehicleEnvironment() {
-    TrackedVehicle *tv = new TrackedVehicle("robot");
+    TrackedVehicle *tv = new TrackedVehicle(this, "robot");
     tv->leftTrack->velocity.setSlope(config.world.track_acceleration);
     tv->rightTrack->velocity.setSlope(config.world.track_acceleration);
     this->v = tv;

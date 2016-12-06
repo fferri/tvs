@@ -9,7 +9,7 @@
 #include <collision_util.h>
 
 SimpleTrackedVehicleEnvironment::SimpleTrackedVehicleEnvironment() {
-    SimpleTrackedVehicle *ssv = new SimpleTrackedVehicle("robot");
+    SimpleTrackedVehicle *ssv = new SimpleTrackedVehicle(this, "robot");
     ssv->leftTrack->velocity.setSlope(config.world.track_acceleration);
     ssv->rightTrack->velocity.setSlope(config.world.track_acceleration);
     this->v = ssv;

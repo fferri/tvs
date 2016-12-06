@@ -26,10 +26,9 @@ class Track : public TrackBase {
 public:
     LinVelProfInt velocity;
 
-    Track(const std::string &name_, dReal radius1_, dReal radius2_, dReal distance_, size_t numGrousers_,
-              dReal linkThickness_, dReal grouserHeight_, dReal trackDepth_, int yDirection);
+    Track(Environment *environment_, const std::string &name_, dReal radius1_, dReal radius2_, dReal distance_, size_t numGrousers_, dReal linkThickness_, dReal grouserHeight_, dReal trackDepth_, int yDirection);
     virtual ~Track();
-    void create(Environment *environment);
+    void create();
     void destroy();
     void step(dReal stepSize);
     void draw();

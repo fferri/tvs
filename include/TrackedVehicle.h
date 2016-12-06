@@ -37,9 +37,9 @@ public:
     dReal trackVehicleSpace;
     dReal vehicleBodyWidth;
     
-    TrackedVehicle(const std::string &name_);
+    TrackedVehicle(Environment *environment_, const std::string &name_);
     virtual ~TrackedVehicle();
-    void create(Environment *environment);
+    void create();
     void destroy();
     void step(dReal stepSize);
     void draw();

@@ -23,11 +23,9 @@ class Environment;
 
 class SimpleTrack : public SimpleTrackBase {
 public:
-
-    SimpleTrack(const std::string &name_, dReal radius1_, dReal radius2_, dReal distance_, dReal trackDepth_,
-                int yDirection, unsigned long additionalCategory);
+    SimpleTrack(Environment *environment_, const std::string &name_, dReal radius1_, dReal radius2_, dReal distance_, dReal trackDepth_, int yDirection, unsigned long additionalCategory);
     virtual ~SimpleTrack();
-    void create(Environment *environment);
+    void create();
     void destroy();
     void step(dReal stepSize);
     void draw();
@@ -37,8 +35,8 @@ public:
     virtual dReal getVelocity();
 
     LinVelProfInt velocity;
-protected:
 
+protected:
     SimpleFlipper* flippers[NUM_FLIPPERS];
     dJointID flipperJoints[NUM_FLIPPERS];
     dJointID flipperMotors[NUM_FLIPPERS];

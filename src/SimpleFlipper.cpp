@@ -2,10 +2,7 @@
 #include "Environment.h"
 #include <drawstuff/drawstuff.h>
 
-SimpleFlipper::SimpleFlipper(const std::string &name_, dReal radius1_, dReal radius2_, dReal distance_,
-                             dReal trackDepth_,
-                             unsigned long additionalCategory) :
-        SimpleTrackBase(name_, radius1_, radius2_, distance_, trackDepth_, additionalCategory) {
+SimpleFlipper::SimpleFlipper(Environment *environment_, const std::string &name_, dReal radius1_, dReal radius2_, dReal distance_, dReal trackDepth_, unsigned long additionalCategory) : SimpleTrackBase(environment_, name_, radius1_, radius2_, distance_, trackDepth_, additionalCategory) {
 
 }
 
@@ -13,8 +10,8 @@ SimpleFlipper::~SimpleFlipper() {
 
 }
 
-void SimpleFlipper::create(Environment *environment) {
-    SimpleTrackBase::create(environment);
+void SimpleFlipper::create() {
+    SimpleTrackBase::create();
 }
 
 void SimpleFlipper::destroy() {

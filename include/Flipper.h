@@ -13,10 +13,9 @@ class Flipper : public TrackBase {
 public:
     LinVelProfInt velocity;
 
-    Flipper(const std::string &name_, dReal radius1_, dReal radius2_, dReal distance_, size_t numGrousers_,
-                dReal linkThickness_, dReal grouserHeight_, dReal trackDepth_);
+    Flipper(Environment *environment_, const std::string &name_, dReal radius1_, dReal radius2_, dReal distance_, size_t numGrousers_, dReal linkThickness_, dReal grouserHeight_, dReal trackDepth_);
     virtual ~Flipper();
-    void create(Environment *environment);
+    void create();
     void destroy();
     void step(dReal stepSize);
     void draw();

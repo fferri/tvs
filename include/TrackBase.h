@@ -12,8 +12,11 @@
 #define USE_GUIDE_GEOMS false
 #define NUM_GUIDE_GEOMS 2
 
+class Environment;
+
 class TrackBase {
 public:
+    Environment *environment;
     std::string name;
     TrackKinematicModel *m;
     dReal density;
@@ -39,10 +42,9 @@ public:
     dReal grouserHeight;
     dRigidBodyArrayID bodyArray;
 
-    TrackBase(const std::string &name_, size_t drivingWheelIndex, dReal radius1_, dReal radius2_, dReal distance_,
-                  size_t numGrousers_, dReal linkThickness_, dReal grouserHeight_, dReal trackDepth_);
+    TrackBase(Environment *environment_, const std::string &name_, size_t drivingWheelIndex, dReal radius1_, dReal radius2_, dReal distance_, size_t numGrousers_, dReal linkThickness_, dReal grouserHeight_, dReal trackDepth_);
     virtual ~TrackBase();
-    virtual void create(Environment *environment);
+    virtual void create();
     virtual void destroy();
     virtual void draw();
     virtual void step(dReal stepSize) = 0;

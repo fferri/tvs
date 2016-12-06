@@ -152,7 +152,7 @@ void Environment::create() {
     boost::property_tree::ptree scene;
     boost::property_tree::ini_parser::read_ini(CONFIG_PATH "/scene.ini", scene);
 
-    if(this->v) this->v->create(this);
+    if(this->v) this->v->create();
 
     size_t meshIndex = 0;
     while(true) {

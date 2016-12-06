@@ -40,9 +40,9 @@ public:
     LinVelProfInt velocityLeft;
     LinVelProfInt velocityRight;
     
-    SkidSteeringVehicle(const std::string& name_, dReal xOffset, dReal yOffset, dReal zOffset);
+    SkidSteeringVehicle(Environment *environment_, const std::string& name_, dReal xOffset, dReal yOffset, dReal zOffset);
     virtual ~SkidSteeringVehicle();
-    void create(Environment *environment);
+    void create();
     void destroy();
     void step(dReal stepSize);
     void draw();

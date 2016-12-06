@@ -2,9 +2,7 @@
 #include "Environment.h"
 #include <drawstuff/drawstuff.h>
 
-Flipper::Flipper(const std::string &name_, dReal radius1_, dReal radius2_, dReal distance_, size_t numGrousers_,
-                 dReal linkThickness_, dReal grouserHeight_, dReal trackDepth_) :
-        TrackBase(name_, 0, radius1_, radius2_, distance_, numGrousers_, linkThickness_, grouserHeight_, trackDepth_) {
+Flipper::Flipper(Environment *environment_, const std::string &name_, dReal radius1_, dReal radius2_, dReal distance_, size_t numGrousers_, dReal linkThickness_, dReal grouserHeight_, dReal trackDepth_) : TrackBase(environment_, name_, 0, radius1_, radius2_, distance_, numGrousers_, linkThickness_, grouserHeight_, trackDepth_) {
 
 }
 
@@ -12,8 +10,8 @@ Flipper::~Flipper() {
 
 }
 
-void Flipper::create(Environment *environment) {
-    TrackBase::create(environment);
+void Flipper::create() {
+    TrackBase::create();
 
 #if NUM_FLIPPER_STRUT_GEOMS >= 1
     dReal l = this->m->distance; // distance between wheel centers
@@ -24,8 +22,8 @@ void Flipper::create(Environment *environment) {
     dMatrix3 flipperEdgeRotation;
     dRFromAxisAndAngle(flipperEdgeRotation, 0, 1, 0, flipperEdgeAngle);
 
-    this->strutGeoms[0] = dCreateBox(environment->space, l, 0.95*this->m->trackDepth, r2);
-    environment->setGeomName(this->strutGeoms[0], this->name + ".strut1");
+    this->strutGeoms[0] = dCreateBox(this->environment->space, l, 0.95*this->m->trackDepth, r2);
+    this->environment->setGeomName(this->strutGeoms[0], this->name + ".strut1");
     dGeomSetCategoryBits(this->strutGeoms[0], Category::FLIPPER_GUIDE);
     dGeomSetCollideBits(this->strutGeoms[0], Category::FLIPPER_GROUSER);
     dGeomSetBody(this->strutGeoms[0], this->trackBody);
@@ -35,8 +33,8 @@ void Flipper::create(Environment *environment) {
 #if NUM_FLIPPER_STRUT_GEOMS >= 2
     dRFromAxisAndAngle(flipperEdgeRotation, 0, 1, 0, -flipperEdgeAngle);
 
-    this->strutGeoms[1] = dCreateBox(environment->space, l, 0.95*this->m->trackDepth, r2);
-    environment->setGeomName(this->strutGeoms[1], this->name + ".strut2");
+    this->strutGeoms[1] = dCreateBox(this->environment->space, l, 0.95*this->m->trackDepth, r2);
+    this->environment->setGeomName(this->strutGeoms[1], this->name + ".strut2");
     dGeomSetCategoryBits(this->strutGeoms[1], Category::FLIPPER_GUIDE);
     dGeomSetCollideBits(this->strutGeoms[1], Category::FLIPPER_GROUSER);
     dGeomSetBody(this->strutGeoms[1], this->trackBody);

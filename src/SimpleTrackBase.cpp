@@ -4,11 +4,7 @@
 #include "PlanarJoint.h"
 #include <drawstuff/drawstuff.h>
 
-SimpleTrackBase::SimpleTrackBase(const std::string &name_, dReal rearRadius, dReal frontRadius,
-                                 dReal betweenWheelsDistance, dReal trackDepth,
-                                 unsigned long additionalCategory)
-        : name(name_) {
-
+SimpleTrackBase::SimpleTrackBase(Environment *environment_, const std::string &name_, dReal rearRadius, dReal frontRadius, dReal betweenWheelsDistance, dReal trackDepth, unsigned long additionalCategory) : environment(environment_), name(name_) {
     this->rearRadius = rearRadius;
     this->frontRadius = frontRadius;
     this->betweenWheelsDistance = betweenWheelsDistance;
@@ -16,14 +12,13 @@ SimpleTrackBase::SimpleTrackBase(const std::string &name_, dReal rearRadius, dRe
     this->additionalCategory = additionalCategory;
 
     this->density = 1.0;
-
 }
 
 SimpleTrackBase::~SimpleTrackBase() {
 }
 
-void SimpleTrackBase::create(Environment *environment) {
-    this->trackBody = dBodyCreate(environment->world);
+void SimpleTrackBase::create() {
+    this->trackBody = dBodyCreate(this->environment->world);
     this->bodyArray = dRigidBodyArrayCreate(this->trackBody);
 
     // approximate computation, but should be sufficient
@@ -46,9 +41,9 @@ void SimpleTrackBase::create(Environment *environment) {
     for(int w = 0; w < 2; w++) {
         const int coef = (w == 0 ? 1 : -1);
 
-        this->trackGeom[w] = dCreateBox(environment->space, l, this->trackDepth, r2);
+        this->trackGeom[w] = dCreateBox(this->environment->space, l, this->trackDepth, r2);
         dGeomSetBody(this->trackGeom[w], this->trackBody);
-        environment->setGeomName(this->trackGeom[w], this->name + ".trackGeom" + boost::lexical_cast<std::string>(w));
+        this->environment->setGeomName(this->trackGeom[w], this->name + ".trackGeom" + boost::lexical_cast<std::string>(w));
 
         dGeomSetCategoryBits(this->trackGeom[w], getGrouserCategory());
         dGeomSetCollideBits(this->trackGeom[w], Category::TERRAIN);
@@ -61,8 +56,8 @@ void SimpleTrackBase::create(Environment *environment) {
 
     const dReal radii[2] = {this->rearRadius, this->frontRadius};
     for(int w = 0; w < 2; w++) {
-        this->wheelGeom[w] = dCreateCylinder(environment->space, radii[w], this->trackDepth);
-        environment->setGeomName(this->wheelGeom[w], this->name + ".wheel" + boost::lexical_cast<std::string>(w));
+        this->wheelGeom[w] = dCreateCylinder(this->environment->space, radii[w], this->trackDepth);
+        this->environment->setGeomName(this->wheelGeom[w], this->name + ".wheel" + boost::lexical_cast<std::string>(w));
         dGeomSetBody(this->wheelGeom[w], this->trackBody);
         dGeomSetCategoryBits(this->wheelGeom[w], getGrouserCategory());
         dGeomSetCollideBits(this->wheelGeom[w], Category::TERRAIN);

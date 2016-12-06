@@ -14,7 +14,7 @@
 #include <drawstuff/drawstuff.h>
 #include "ODEUtils.h"
 
-TrackedVehicle::TrackedVehicle(const std::string &name_) : Vehicle(name_) {
+TrackedVehicle::TrackedVehicle(Environment *environment_, const std::string &name_) : Vehicle(environment_, name_) {
     wheelRadius = 0.078;
     wheelBase = 0.4997;
     trackWidth = 0.097;
@@ -30,14 +30,10 @@ TrackedVehicle::TrackedVehicle(const std::string &name_) : Vehicle(name_) {
     this->density = 1.4;
     this->width = vehicleBodyWidth;
 
-    this->leftTrack = new Track(name + ".leftTrack", wheelRadius, wheelRadius, wheelBase, numGrousers, linkThickness,
-                                grouserHeight, trackWidth, -1);
-    this->rightTrack = new Track(name + ".rightTrack", wheelRadius, wheelRadius, wheelBase, numGrousers, linkThickness,
-                                 grouserHeight, trackWidth, 1);
-    this->leftTrack->prepareFlippers(wheelRadius, flipperRadius, flipperBase, numGrousers,
-                                       linkThickness, grouserHeight, flipperWidth);
-    this->rightTrack->prepareFlippers(wheelRadius, flipperRadius, flipperBase, numGrousers,
-                                     linkThickness, grouserHeight, flipperWidth);
+    this->leftTrack = new Track(this->environment, name + ".leftTrack", wheelRadius, wheelRadius, wheelBase, numGrousers, linkThickness, grouserHeight, trackWidth, -1);
+    this->rightTrack = new Track(this->environment, name + ".rightTrack", wheelRadius, wheelRadius, wheelBase, numGrousers, linkThickness, grouserHeight, trackWidth, 1);
+    this->leftTrack->prepareFlippers(wheelRadius, flipperRadius, flipperBase, numGrousers, linkThickness, grouserHeight, flipperWidth);
+    this->rightTrack->prepareFlippers(wheelRadius, flipperRadius, flipperBase, numGrousers, linkThickness, grouserHeight, flipperWidth);
 }
 
 TrackedVehicle::~TrackedVehicle() {
@@ -45,10 +41,10 @@ TrackedVehicle::~TrackedVehicle() {
     delete this->rightTrack;
 }
 
-void TrackedVehicle::create(Environment *environment) {
-    this->vehicleBody = dBodyCreate(environment->world);
-    this->vehicleGeom = dCreateBox(environment->space, this->leftTrack->m->distance, this->width, this->leftTrack->m->radius[0]);
-    environment->setGeomName(this->vehicleGeom, name + ".vehicleGeom");
+void TrackedVehicle::create() {
+    this->vehicleBody = dBodyCreate(this->environment->world);
+    this->vehicleGeom = dCreateBox(this->environment->space, this->leftTrack->m->distance, this->width, this->leftTrack->m->radius[0]);
+    this->environment->setGeomName(this->vehicleGeom, name + ".vehicleGeom");
     dMassSetBox(&this->vehicleMass, this->density, this->leftTrack->m->distance, this->width, this->leftTrack->m->radius[0]);
     //dMassAdjust(&this->vehicleMass, 2.40);
     dGeomSetCategoryBits(this->vehicleGeom, Category::OBSTACLE);
@@ -57,15 +53,15 @@ void TrackedVehicle::create(Environment *environment) {
     dGeomSetBody(this->vehicleGeom, this->vehicleBody);
     dGeomSetOffsetPosition(this->vehicleGeom, 0, 0, this->leftTrack->m->radius[0]);
 
-    this->leftTrack->create(environment);
-    this->rightTrack->create(environment);
+    this->leftTrack->create();
+    this->rightTrack->create();
 
     dReal w = this->width + 2*trackWidth + 2 * trackVehicleSpace;
     dRigidBodyArraySetPosition(leftTrack->bodyArray,  -wheelBase/2, -(w - trackWidth)/2, 0);
     dRigidBodyArraySetPosition(rightTrack->bodyArray, -wheelBase/2,  (w - trackWidth)/2, 0);
 
-    this->leftTrackJoint = dJointCreateFixed(environment->world, 0);
-    this->rightTrackJoint = dJointCreateFixed(environment->world, 0);
+    this->leftTrackJoint = dJointCreateFixed(this->environment->world, 0);
+    this->rightTrackJoint = dJointCreateFixed(this->environment->world, 0);
     dJointAttach(this->leftTrackJoint, this->vehicleBody, this->leftTrack->trackBody);
     dJointAttach(this->rightTrackJoint, this->vehicleBody, this->rightTrack->trackBody);
     dJointSetFixed(this->leftTrackJoint);

@@ -26,14 +26,13 @@ unsigned int OMPLTVSEnvironment::getControlDimension(void) const {
 }
 
 void OMPLTVSEnvironment::getControlBounds(std::vector<double> &lower, std::vector<double> &upper) const {
-    static double maxVel = 5.0;
     lower.resize(2);
-    lower[0] = -maxVel;
-    lower[1] = -maxVel;
+    lower[0] = -1.0;
+    lower[1] = -1.0;
     
     upper.resize(2);
-    upper[0] = maxVel;
-    upper[1] = maxVel;
+    upper[0] = 1.0;
+    upper[1] = 1.0;
 }
 
 void OMPLTVSEnvironment::applyControl(const double *control) const {
