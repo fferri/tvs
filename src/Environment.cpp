@@ -19,6 +19,7 @@
 #include <boost/foreach.hpp>
 #include <boost/assign/list_of.hpp>
 #include <boost/format.hpp>
+#include <boost/algorithm/string/predicate.hpp>
 #include <PlanarJoint.h>
 #include "utils.h"
 #include "TrackedVehicle.h"
@@ -105,6 +106,22 @@ bool readOrientation(const boost::property_tree::ptree &ini, std::string section
     return false;
 }
 
+bool readColor(const boost::property_tree::ptree &ini, std::string section, float &r, float &g, float &b, float &a) {
+    boost::optional<float> cr = ini.get_optional<float>(section + ".color_r");
+    boost::optional<float> cg = ini.get_optional<float>(section + ".color_g");
+    boost::optional<float> cb = ini.get_optional<float>(section + ".color_b");
+    boost::optional<float> ca = ini.get_optional<float>(section + ".alpha");
+    if(cr && cg && cb) {
+        r = cr.get();
+        g = cg.get();
+        b = cb.get();
+        if(ca) a = ca.get();
+        return true;
+    } else {
+        return false;
+    }
+}
+
 void Environment::create() {
     this->world = dWorldCreate();
 #if 0
@@ -148,6 +165,11 @@ void Environment::create() {
             std::string filefmt = scene.get<std::string>(k + ".file_format", "binary");
             float scale = scene.get<float>(k + ".scale_factor", 1.0);
             m->create(this, file.get().c_str(), filefmt == "binary", scale);
+            m->color.r = 0.6;
+            m->color.g = 0.6;
+            m->color.b = 0.7;
+            m->color.a = 0.8;
+            readColor(scene, k, m->color.r, m->color.g, m->color.b, m->color.a);
             dGeomSetCategoryBits(m->geom, 0);
             dGeomSetCollideBits(m->geom, Category::TRACK_GROUSER | Category::TRACK_WHEEL | Category::FLIPPER_GROUSER | Category::FLIPPER_WHEEL | Category::TRACK | Category::FLIPPER | Category::OBSTACLE | Category::TERRAIN);
             this->meshes[scene.get<std::string>(k + ".name", k)] = m;
@@ -338,7 +360,6 @@ void Environment::draw() {
         dsDrawBoxD(pos, R, sides);
     }
 
-    dsSetColorAlpha(0.6, 0.6, 0.7, 0.8);
     BOOST_FOREACH(const TriMeshMap::value_type &v, this->meshes) {
         v.second->draw();
     }

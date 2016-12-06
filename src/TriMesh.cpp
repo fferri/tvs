@@ -86,6 +86,7 @@ void TriMesh::destroy() {
 void TriMesh::draw() {
     const dReal* pos = dGeomGetPosition(this->geom);
     const dReal* R = dGeomGetRotation(this->geom);
+    dsSetColorAlpha(this->color.r, this->color.g, this->color.b, this->color.a);
 #ifdef HAVE_DSDRAWTRIANGLES_FUNCTION
     dsDrawTrianglesD(pos, R, v, n, 1);
 #else

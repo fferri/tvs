@@ -31,6 +31,10 @@ public:
         } x, y, z;
     } bounds;
 
+    struct Color {
+        float r, g, b, a;
+    } color;
+
     TriMesh();
     virtual ~TriMesh();
     void create(Environment *environment, const char *inputfile, bool binary = false, float scaleFactor = 1.0);
