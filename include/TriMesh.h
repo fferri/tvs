@@ -25,7 +25,11 @@ public:
     dTriIndex *triangles;
     int triangle_count;
     
-    dReal minX, maxX, minY, maxY, minZ, maxZ;
+    struct BoundsXYZ {
+        struct Bounds {
+            dReal min, max;
+        } x, y, z;
+    } bounds;
 
     TriMesh();
     virtual ~TriMesh();

@@ -58,18 +58,18 @@ void TriMesh::create(Environment *environment, const char *inputfile, bool binar
         vertex_idx++;
     }
     for(size_t i = 0; i < this->vertex_count; i++) {
-        if(i == 0 || this->vertices[3 * i + 0] < this->minX)
-            this->minX = this->vertices[3 * i + 0];
-        if(i == 0 || this->vertices[3 * i + 0] > this->maxX)
-            this->maxX = this->vertices[3 * i + 0];
-        if(i == 0 || this->vertices[3 * i + 1] < this->minY)
-            this->minY = this->vertices[3 * i + 1];
-        if(i == 0 || this->vertices[3 * i + 1] > this->maxY)
-            this->maxY = this->vertices[3 * i + 1];
-        if(i == 0 || this->vertices[3 * i + 2] < this->minZ)
-            this->minZ = this->vertices[3 * i + 2];
-        if(i == 0 || this->vertices[3 * i + 2] > this->maxZ)
-            this->maxZ = this->vertices[3 * i + 2];
+        if(i == 0 || this->vertices[3 * i + 0] < this->bounds.x.min)
+            this->bounds.x.min = this->vertices[3 * i + 0];
+        if(i == 0 || this->vertices[3 * i + 0] > this->bounds.x.max)
+            this->bounds.x.max = this->vertices[3 * i + 0];
+        if(i == 0 || this->vertices[3 * i + 1] < this->bounds.y.min)
+            this->bounds.y.min = this->vertices[3 * i + 1];
+        if(i == 0 || this->vertices[3 * i + 1] > this->bounds.y.max)
+            this->bounds.y.max = this->vertices[3 * i + 1];
+        if(i == 0 || this->vertices[3 * i + 2] < this->bounds.z.min)
+            this->bounds.z.min = this->vertices[3 * i + 2];
+        if(i == 0 || this->vertices[3 * i + 2] > this->bounds.z.max)
+            this->bounds.z.max = this->vertices[3 * i + 2];
     }
 
     this->triMeshDataID = dGeomTriMeshDataCreate();

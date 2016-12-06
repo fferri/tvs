@@ -68,7 +68,6 @@ void Environment::readConfig() {
 }
 
 bool readPosition(const boost::property_tree::ptree &ini, std::string section, dVector3 &pos) {
-    //scene.get<float>("vehicle.position_x", 0.),
     boost::optional<float> x = ini.get_optional<float>(section + ".position_x");
     boost::optional<float> y = ini.get_optional<float>(section + ".position_y");
     boost::optional<float> z = ini.get_optional<float>(section + ".position_z");
@@ -199,7 +198,8 @@ void Environment::setObjectsPositions() {
         if(file) {
             std::string name = scene.get<std::string>(k + ".name", k);
             TriMeshPtr m = this->meshes[name];
-            dVector3 pos = {0., 0., 0.}, c = {(m->maxX + m->minX) / 2, (m->maxY + m->minY) / 2, m->minZ};
+            TriMesh::BoundsXYZ &b = m->bounds;
+            dVector3 pos = {0., 0., 0.}, c = {(b.x.max + b.x.min) / 2, (b.y.max + b.y.min) / 2, b.z.min};
             readPosition(scene, k, pos);
             for(int i = 0; i < 3; i++) pos[i] -= c[i];
             dGeomSetPosition(m->geom, pos[0], pos[1], pos[2]);
