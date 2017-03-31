@@ -45,13 +45,13 @@ for obji=1,#allObjects,1 do
         file:write('[object'..objNum..']\n')
         objNum=objNum+1
         file:write('name='..objName..'\n')
-        file:write('pos_x='..pos[1]..'\n')
-        file:write('pos_y='..pos[2]..'\n')
-        file:write('pos_z='..pos[3]..'\n')
-        file:write('orient_x='..quat[1]..'\n')
-        file:write('orient_y='..quat[2]..'\n')
-        file:write('orient_z='..quat[3]..'\n')
-        file:write('orient_w='..quat[4]..'\n')
+        file:write('position_x='..pos[1]..'\n')
+        file:write('position_y='..pos[2]..'\n')
+        file:write('position_z='..pos[3]..'\n')
+        file:write('orientation_quaternion_x='..quat[1]..'\n')
+        file:write('orientation_quaternion_y='..quat[2]..'\n')
+        file:write('orientation_quaternion_z='..quat[3]..'\n')
+        file:write('orientation_quaternion_w='..quat[4]..'\n')
         local result,pureType,dimensions=simGetShapeGeomInfo(allObjects[obji])
         local compound=simBoolAnd32(result,1)~=0
         local pure=simBoolAnd32(result,2)~=0
