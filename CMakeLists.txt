@@ -40,6 +40,7 @@ endif()
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-nullability-completeness -Wno-redeclared-class-member")
 
 set(LIBS
+        ${DRAWSTUFF_LIBRARIES}
         ${OPENGL_LIBRARIES}
         ${GLUT_LIBRARIES}
         ${Boost_LIBRARIES}
@@ -48,7 +49,6 @@ set(LIBS
         ${SDL2_LIBRARY}
         ${OMPL_LIBRARIES}
         ${ODE_LIBRARIES}
-        ${DRAWSTUFF_LIBRARIES}
 )
 
 include_directories(
