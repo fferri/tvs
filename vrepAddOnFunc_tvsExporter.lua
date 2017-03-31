@@ -24,7 +24,7 @@ end
 
 local file=io.open(fileToSave, "w")
 
-local objNum=1
+local objNum=0
 
 local selectedObjects=simGetObjectSelection()
 local allObjects=simGetObjectsInTree(sim_handle_scene)
