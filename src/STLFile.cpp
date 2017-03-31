@@ -11,7 +11,7 @@
 #include <fstream>
 #include <sstream>
 #include <iostream>
-#include <exception>
+#include <stdexcept>
 
 void STLFacet::readAscii(std::vector<std::string> &lines, size_t &pos) {
     size_t p = pos;
