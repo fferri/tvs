@@ -64,6 +64,14 @@ struct Config {
 
 typedef std::map<std::string, TriMeshPtr> TriMeshMap;
 
+struct Object {
+    dGeomID geom;
+    struct {
+        float r, g, b, a;
+    } color;
+};
+typedef std::map<std::string, Object> ObjectMap;
+
 class Environment {
 public:
     Config config;
@@ -80,6 +88,7 @@ public:
     Vehicle *v;
     std::vector<dGeomID> boxes;
     TriMeshMap meshes;
+    ObjectMap objects;
     
     bool badCollision;
     std::vector<dContactGeom> contacts;
@@ -88,9 +97,9 @@ public:
     Environment();
     virtual ~Environment();
     void readConfig();
+    void readSceneINI(std::string file);
     void create();
     void destroy();
-    void setObjectsPositions();
     std::string getGeomName(dGeomID geom) const;
     void setGeomName(dGeomID geom, const std::string &name);
     bool isCatPair(unsigned long cat1, unsigned long cat2, dGeomID *o1, dGeomID *o2);
