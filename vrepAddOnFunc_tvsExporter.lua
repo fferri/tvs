@@ -41,6 +41,7 @@ for obji=1,#allObjects,1 do
     local quat=simGetObjectMatrix(allObjects[obji],-1)
     local pureType,size=getPureShapeType(allObjects[obji])
     local respondable=isRespondable(allObjects[obji])
+    local result,color=simGetShapeColor(allObjects[obji],nil,sim_colorcomponent_ambient_diffuse)
     if respondable and pureType~=nil then
         file:write('[object'..objNum..']\n')
         objNum=objNum+1
@@ -78,6 +79,9 @@ for obji=1,#allObjects,1 do
         file:write('size_x='..dimensions[1]..'\n')
         file:write('size_y='..dimensions[2]..'\n')
         file:write('size_z='..dimensions[3]..'\n')
+        file:write('color_r='..color[1]..'\n')
+        file:write('color_g='..color[2]..'\n')
+        file:write('color_b='..color[3]..'\n')
         file:write("\n")
     end
 end
