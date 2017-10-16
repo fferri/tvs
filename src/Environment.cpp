@@ -125,6 +125,94 @@ bool readColor(const boost::property_tree::ptree &ini, std::string section, floa
     }
 }
 
+void Environment::readSceneINI(std::string iniFileName) {
+    boost::property_tree::ptree ini;
+    boost::property_tree::ini_parser::read_ini(iniFileName, ini);
+    std::cout << "INFO: reading ini file " << iniFileName << std::endl;
+
+    size_t meshIndex = 0;
+    while(true) {
+        std::string k = "mesh";
+        k += boost::lexical_cast<std::string>(meshIndex++);
+        boost::optional<std::string> file = ini.get_optional<std::string>(k + ".file");
+        if(!file) break;
+        std::cout << "Loading mesh " << file.get() << std::endl;
+        TriMeshPtr m(new TriMesh);
+        std::string filefmt = ini.get<std::string>(k + ".file_format", "binary");
+        float scale = ini.get<float>(k + ".scale_factor", 1.0);
+        m->create(this, file.get().c_str(), filefmt == "binary", scale);
+        m->color.r = 0.6;
+        m->color.g = 0.6;
+        m->color.b = 0.7;
+        m->color.a = 0.8;
+        readColor(ini, k, m->color.r, m->color.g, m->color.b, m->color.a);
+        dGeomSetCategoryBits(m->geom, 0);
+        dGeomSetCollideBits(m->geom, Category::TRACK_GROUSER | Category::TRACK_WHEEL | Category::FLIPPER_GROUSER | Category::FLIPPER_WHEEL | Category::TRACK | Category::FLIPPER | Category::OBSTACLE | Category::TERRAIN);
+        TriMesh::BoundsXYZ &b = m->bounds;
+        dVector3 pos = {0., 0., 0.}, c = {(b.x.max + b.x.min) / 2, (b.y.max + b.y.min) / 2, b.z.min};
+        readPosition(ini, k, pos);
+        for(int i = 0; i < 3; i++) pos[i] -= c[i];
+        dGeomSetPosition(m->geom, pos[0], pos[1], pos[2]);
+        dMatrix3 R;
+        dRSetIdentity(R);
+        readOrientation(ini, k, R);
+        dGeomSetRotation(m->geom, R);
+        this->meshes[ini.get<std::string>(k + ".name", k)] = m;
+    }
+
+    size_t objectIndex = 0;
+    while(true) {
+        std::string k = "object";
+        k += boost::lexical_cast<std::string>(objectIndex++);
+        boost::optional<std::string> name = ini.get_optional<std::string>(k + ".name");
+        if(!name) break;
+        std::cout << "Creating object " << name.get() << std::endl;
+        Object obj;
+        obj.geom = 0;
+        float size[3];
+        size[0] = ini.get<float>(k + ".size_x");
+        size[1] = ini.get<float>(k + ".size_y");
+        size[2] = ini.get<float>(k + ".size_z");
+        std::string type = ini.get<std::string>(k + ".type");
+        if(type == "cuboid") {
+            obj.geom = dCreateBox(this->space, size[0], size[1], size[2]);
+        } else if(type == "spheroid") {
+            obj.geom = dCreateSphere(this->space, size[0]);
+        } else {
+            std::cout << "ERROR: unsupported geometry type: " << type << std::endl;
+            exit(1);
+        }
+        dGeomSetCategoryBits(obj.geom, 0);
+        dGeomSetCollideBits(obj.geom, Category::TRACK_GROUSER | Category::TRACK_WHEEL | Category::FLIPPER_GROUSER | Category::FLIPPER_WHEEL | Category::TRACK | Category::FLIPPER | Category::OBSTACLE | Category::TERRAIN);
+        dVector3 pos;
+        dMatrix3 R;
+        readPosition(ini, k, pos);
+        readOrientation(ini, k, R);
+        dGeomSetPosition(obj.geom, pos[0], pos[1], pos[2]);
+        std::cout << "    pos " << pos[0] << ", " << pos[1] << ", " << pos[2] << std::endl;
+        std::cout << "    R " << R[0] << ", " << R[1] << ", " << R[2] << std::endl;
+        std::cout << "      " << R[4] << ", " << R[5] << ", " << R[6] << std::endl;
+        std::cout << "      " << R[8] << ", " << R[9] << ", " << R[10] << std::endl;
+        dGeomSetRotation(obj.geom, R);
+        setGeomName(obj.geom, name.get());
+        obj.color.r = obj.color.g = obj.color.b = 0.7;
+        obj.color.a = 1.0;
+        readColor(ini, k, obj.color.r, obj.color.g, obj.color.b, obj.color.a);
+        std::cout << "    col " << obj.color.r << ", " << obj.color.g << ", " << obj.color.b << ", " << obj.color.a << std::endl;
+        this->objects[name.get()] = obj;
+    }
+
+    size_t includeIndex = 0;
+    while(true) {
+        std::string k = "include";
+        k += boost::lexical_cast<std::string>(includeIndex++);
+        boost::optional<std::string> file = ini.get_optional<std::string>(k + ".file");
+        if(!file) break;
+        std::string sfile = CONFIG_PATH "/" + file.get();
+        readSceneINI(sfile);
+    }
+}
+
 void Environment::create() {
     this->world = dWorldCreate();
 #if 0
@@ -152,35 +240,20 @@ void Environment::create() {
     dGeomSetCategoryBits(this->planeGeom, Category::TERRAIN);
     dGeomSetCollideBits(this->planeGeom, Category::TRACK_GROUSER | Category::FLIPPER_GROUSER | Category::OBSTACLE);
 
-    boost::property_tree::ptree scene;
-    boost::property_tree::ini_parser::read_ini(CONFIG_PATH "/scene.ini", scene);
-
     if(this->v) this->v->create();
 
-    size_t meshIndex = 0;
-    while(true) {
-        std::string k = "mesh";
-        k += boost::lexical_cast<std::string>(meshIndex++);
-        boost::optional<std::string> file = scene.get_optional<std::string>(k + ".file");
-        if(file) {
-            std::cout << "Loading mesh " << file.get() << std::endl;
-            TriMeshPtr m(new TriMesh);
-            std::string filefmt = scene.get<std::string>(k + ".file_format", "binary");
-            float scale = scene.get<float>(k + ".scale_factor", 1.0);
-            m->create(this, file.get().c_str(), filefmt == "binary", scale);
-            m->color.r = 0.6;
-            m->color.g = 0.6;
-            m->color.b = 0.7;
-            m->color.a = 0.8;
-            readColor(scene, k, m->color.r, m->color.g, m->color.b, m->color.a);
-            dGeomSetCategoryBits(m->geom, 0);
-            dGeomSetCollideBits(m->geom, Category::TRACK_GROUSER | Category::TRACK_WHEEL | Category::FLIPPER_GROUSER | Category::FLIPPER_WHEEL | Category::TRACK | Category::FLIPPER | Category::OBSTACLE | Category::TERRAIN);
-            this->meshes[scene.get<std::string>(k + ".name", k)] = m;
-        }
-        else break;
-    }
+    readSceneINI(CONFIG_PATH "/scene.ini");
 
-    this->setObjectsPositions();
+    boost::property_tree::ptree scene;
+    boost::property_tree::ini_parser::read_ini(CONFIG_PATH "/scene.ini", scene);
+    if(this->v) {
+        dVector3 pos;
+        readPosition(scene, "vehicle", pos);
+        this->v->setPosition(pos);
+        dMatrix3 R;
+        readOrientation(scene, "vehicle", R);
+        this->v->setRotation(R);
+    }
 
 #ifdef OCTOMAP_FOUND
     if(false) {
@@ -203,41 +276,6 @@ void Environment::destroy() {
 
     BOOST_FOREACH(const TriMeshMap::value_type &v, this->meshes) {
         v.second->destroy();
-    }
-}
-
-void Environment::setObjectsPositions() {
-    boost::property_tree::ptree scene;
-    boost::property_tree::ini_parser::read_ini(CONFIG_PATH "/scene.ini", scene);
-
-    if(this->v) {
-        dVector3 pos;
-        readPosition(scene, "vehicle", pos);
-        this->v->setPosition(pos);
-        dMatrix3 R;
-        readOrientation(scene, "vehicle", R);
-        this->v->setRotation(R);
-    }
-
-    size_t meshIndex = 0;
-    while(true) {
-        std::string k = "mesh";
-        k += boost::lexical_cast<std::string>(meshIndex++);
-        boost::optional<std::string> file = scene.get_optional<std::string>(k + ".file");
-        if(file) {
-            std::string name = scene.get<std::string>(k + ".name", k);
-            TriMeshPtr m = this->meshes[name];
-            TriMesh::BoundsXYZ &b = m->bounds;
-            dVector3 pos = {0., 0., 0.}, c = {(b.x.max + b.x.min) / 2, (b.y.max + b.y.min) / 2, b.z.min};
-            readPosition(scene, k, pos);
-            for(int i = 0; i < 3; i++) pos[i] -= c[i];
-            dGeomSetPosition(m->geom, pos[0], pos[1], pos[2]);
-            dMatrix3 R;
-            dRSetIdentity(R);
-            readOrientation(scene, k, R);
-            dGeomSetRotation(m->geom, R);
-        }
-        else break;
     }
 }
 
@@ -369,6 +407,16 @@ void Environment::draw() {
 
     BOOST_FOREACH(const TriMeshMap::value_type &v, this->meshes) {
         v.second->draw();
+    }
+
+    BOOST_FOREACH(const ObjectMap::value_type &v, this->objects) {
+        const Object &obj = v.second;
+        dsSetColorAlpha(obj.color.r, obj.color.g, obj.color.b, obj.color.a);
+        const dReal *pos = dGeomGetPosition(obj.geom);
+        const dReal *R = dGeomGetRotation(obj.geom);
+        dReal sides[3];
+        dGeomBoxGetLengths(obj.geom, sides);
+        dsDrawBoxD(pos, R, sides);
     }
 }
 

@@ -39,7 +39,7 @@ int flipperMovementSpeed = 0;
 dReal linearSpeed = 0, angularSpeed = 0;
 
 void initRobotPose() {
-    environment->setObjectsPositions();
+    //environment->setObjectsPositions();
     vel_left = vel_right = 0.0;
     environment->v->setVelocities(0, 0);
 }

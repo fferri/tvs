@@ -24,7 +24,7 @@ end
 
 local file=io.open(fileToSave, "w")
 
-local objNum=1
+local objNum=0
 
 local selectedObjects=simGetObjectSelection()
 local allObjects=simGetObjectsInTree(sim_handle_scene)
@@ -42,16 +42,17 @@ for obji=1,#allObjects,1 do
     local pureType,size=getPureShapeType(allObjects[obji])
     local respondable=isRespondable(allObjects[obji])
     if respondable and pureType~=nil then
+        local result,color=simGetShapeColor(allObjects[obji],nil,sim_colorcomponent_ambient_diffuse)
         file:write('[object'..objNum..']\n')
         objNum=objNum+1
         file:write('name='..objName..'\n')
-        file:write('pos_x='..pos[1]..'\n')
-        file:write('pos_y='..pos[2]..'\n')
-        file:write('pos_z='..pos[3]..'\n')
-        file:write('orient_x='..quat[1]..'\n')
-        file:write('orient_y='..quat[2]..'\n')
-        file:write('orient_z='..quat[3]..'\n')
-        file:write('orient_w='..quat[4]..'\n')
+        file:write('position_x='..pos[1]..'\n')
+        file:write('position_y='..pos[2]..'\n')
+        file:write('position_z='..pos[3]..'\n')
+        file:write('orientation_quaternion_x='..quat[1]..'\n')
+        file:write('orientation_quaternion_y='..quat[2]..'\n')
+        file:write('orientation_quaternion_z='..quat[3]..'\n')
+        file:write('orientation_quaternion_w='..quat[4]..'\n')
         local result,pureType,dimensions=simGetShapeGeomInfo(allObjects[obji])
         local compound=simBoolAnd32(result,1)~=0
         local pure=simBoolAnd32(result,2)~=0
@@ -78,6 +79,9 @@ for obji=1,#allObjects,1 do
         file:write('size_x='..dimensions[1]..'\n')
         file:write('size_y='..dimensions[2]..'\n')
         file:write('size_z='..dimensions[3]..'\n')
+        file:write('color_r='..color[1]..'\n')
+        file:write('color_g='..color[2]..'\n')
+        file:write('color_b='..color[3]..'\n')
         file:write("\n")
     end
 end
