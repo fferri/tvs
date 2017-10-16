@@ -6,9 +6,12 @@
 //  Copyright (c) 2014 Federico Ferri. All rights reserved.
 //
 
+#include "config.h"
 #include "Environment.h"
 #include "ODEUtils.h"
+#ifdef OCTOMAP_FOUND
 #include "OcTreeBuilder.h"
+#endif
 #include <cstdio>
 #include <cstdlib>
 #include <cassert>
@@ -179,11 +182,13 @@ void Environment::create() {
 
     this->setObjectsPositions();
 
+#ifdef OCTOMAP_FOUND
     if(false) {
         OcTreeBuilder occGridBuilder(this, 7, 10.);
         occGridBuilder.check();
         occGridBuilder.saveOcTree("test.bt");
     }
+#endif
 }
 
 void Environment::destroy() {

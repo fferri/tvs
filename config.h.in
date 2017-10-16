@@ -1,0 +1,2 @@
+#cmakedefine PCL_FOUND
+#cmakedefine OCTOMAP_FOUND

@@ -1,5 +1,7 @@
-cmake_minimum_required(VERSION 2.8.12)
+cmake_minimum_required(VERSION 3.1)
 project(tracked_motion)
+
+set(CMAKE_CXX_STANDARD 11)
 
 get_filename_component(PARENT_DIR ${tracked_motion_SOURCE_DIR} DIRECTORY) # needs cmake 2.8.12
 
@@ -13,8 +15,8 @@ find_package(OpenGL REQUIRED)
 find_package(GLUT REQUIRED)
 
 find_package(Boost REQUIRED COMPONENTS system thread filesystem)
-find_package(PCL REQUIRED COMPONENTS common filters io kdtree sample_consensus)
-find_package(octomap REQUIRED)
+find_package(PCL COMPONENTS common filters io kdtree sample_consensus)
+find_package(octomap)
 find_package(SDL2 REQUIRED)
 
 # we need ompl-1.0.0, other version break in different ways
@@ -44,29 +46,27 @@ set(LIBS
         ${OPENGL_LIBRARIES}
         ${GLUT_LIBRARIES}
         ${Boost_LIBRARIES}
-        ${PCL_LIBRARIES}
-        ${OCTOMAP_LIBRARIES}
         ${SDL2_LIBRARY}
         ${OMPL_LIBRARIES}
         ${ODE_LIBRARIES}
 )
 
 include_directories(
+    ${CMAKE_BUILD_DIR}
         include
         ${OPENGL_INCLUDE_DIR}
         ${GLUT_INCLUDE_DIR}
         ${Boost_INCLUDE_DIRS}
-        ${PCL_INCLUDE_DIRS}
-        ${OCTOMAP_INCLUDE_DIRS}
         ${SDL2_INCLUDE_DIR}
         ${OMPL_INCLUDE_DIRS}
         ${ODE_INCLUDE_DIRS}
         ../ode/ode/src/
 )
 
-add_library(tvs_common OBJECT
+configure_file(${CMAKE_SOURCE_DIR}/config.h.in ${CMAKE_BINARY_DIR}/config.h)
+
+set(SOURCES
         src/Environment.cpp
-        src/OcTreeBuilder.cpp
         src/TriMesh.cpp
         src/STLFile.cpp
         src/ODEUtils.cpp
@@ -90,11 +90,24 @@ add_library(tvs_common OBJECT
         src/SimpleTrackedVehicleEnvironment.cpp
 )
 
+if(PCL_FOUND)
+    set(LIBS ${LIBS} ${PCL_LIBRARIES})
+    include_directories(${PCL_INCLUDE_DIRS})
+endif()
+
+if(OCTOMAP_FOUND)
+    set(SOURCES ${SOURCES} src/OcTreeBuilder.cpp)
+    set(LIBS ${LIBS} ${OCTOMAP_LIBRARIES})
+    include_directories(${OCTOMAP_INCLUDE_DIRS})
+endif()
+
+add_library(tvs_common OBJECT ${SOURCES})
+
 add_executable(simulator $<TARGET_OBJECTS:tvs_common> src/simulator.cpp)
 target_link_libraries(simulator ${LIBS})
 
-add_executable(planner $<TARGET_OBJECTS:tvs_common> src/OMPLTVSControlSpace.cpp src/OMPLTVSEnvironment.cpp src/OMPLTVSSimpleSetup.cpp src/OMPLTVSStatePropagator.cpp src/OMPLTVSStateSpace.cpp src/OMPLTVSStateValidityChecker.cpp src/planner.cpp)
-target_link_libraries(planner ${LIBS})
+#add_executable(planner $<TARGET_OBJECTS:tvs_common> src/OMPLTVSControlSpace.cpp src/OMPLTVSEnvironment.cpp src/OMPLTVSSimpleSetup.cpp src/OMPLTVSStatePropagator.cpp src/OMPLTVSStateSpace.cpp src/OMPLTVSStateValidityChecker.cpp src/planner.cpp)
+#target_link_libraries(planner ${LIBS})
 
 add_executable(search-vis $<TARGET_OBJECTS:tvs_common> src/search_vis.cpp)
 target_link_libraries(search-vis ${LIBS})
